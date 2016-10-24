@@ -28,124 +28,7 @@ import example.entity.User;
 public class JdbcDao_Test {
     private static Logger logger = Logger.getLogger("JdbcDaoTest.class");
 	private JdbcDao jdbcDao = JdbcDaoFactory.getJdbcDao();
-	@Test
-	public void get(){
-		
-		User u = new  User();
-		u.setName("EJLKSDJFLS");
-		u = (User) jdbcDao.get(u);
-		logger.info(u);
-	}
-	
-	@Test
-	public void gets(){
-		
-		User u = new  User();
-		u.setName("AAA");
-		@SuppressWarnings("unchecked")
-		List<User> list  =   (List<User>) jdbcDao.gets(u);
-		logger.info(list);
-		
-	}
-	
-	@Test 
-	public void delete (){
-		User u = new User ();
-		u.setId(345);
-		long n = jdbcDao.delete(u);
-		logger.info(n);
-	}
-	@Test 
-	public void update (){
-		User u = new User ();
-		u.setId(1072);
-		u.setName("ni mei");
-		u.setAge(234);
-		u.setCreateDate(new Date());
-		u.setField1("LSDJFSDKHLS");
-		Long n = jdbcDao.update(u);
-		logger.info(n);
-	}
-	@Test 
-	public void update2 (){
-		User u = new User ();
-		//u.setId(1072);
-		u.setName("ni mei");
-		
-		User newU = new User();
-		newU.setAge(100);
-		Long n = jdbcDao.update(u,newU);
-		logger.info(n);
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Test
-	public void gets2(){
-		 
-		Cond name = new Cond("name", LikeSign.LIKE, "AAA");
-		Cond id = new Cond("id", new Integer[]{1079,1080,1081});
-		Cond age = new Cond("age",1,100);
-		Cond pass = new  Cond("pass",LikeSign.LIKE,"h");
-		
-		And nameANDid = new And(name,id);
-		Or ageORpass = new Or(age,pass);
-		
-		Cond o = new And(nameANDid,ageORpass);
-		
-		Cond o2 = new And(name,id).and(new Or(age,pass));
-		
-		
-		Cond o3 = new And(new And(name,id),new Or(age,pass)); 
-		
-		Cond a = new And(name ,age );
-		
-		Cond o4 = new Or(name,id,age,pass).and(new Cond("note", LikeSign.LIKE, "haha"));
-		
-		List<User> list  =   (List<User>) jdbcDao.gets(User.class, a );
-		logger.info(list);
-	}
-	
-	@Test
-	public void gets4Conditions(){
-		
-		User u = new  User();
-		u.setName("AAA");
-		Conditions c = new Conditions(u);
-		c.setCondition("name", LikeSign.LIKE);
-		@SuppressWarnings("unchecked")
-		List<User> list  =   (List<User>) jdbcDao.gets(u);
-		logger.info(list);
-		
-	}
-	
-	@Test
-	public void saveOrUpdates(){
-		User u1 = new  User();
-		u1.setId(1072);
-		u1.setName("CCCCC");
-		User u2 = new  User();
-		u2.setId(2);
-		u2.setName("DDDDD");
-		List<User> list = new ArrayList<>();
-		list.add(u1);
-		list.add(u2);
-		
-		Boolean b = jdbcDao.saveOrUpdates(list);
-		
-		logger.info(b);
-		
-	}
-	@Test
-	public void saveOrUpdate(){
-		User u1 = new  User();
-		u1.setId(1078);
-		u1.setName("EJLKSDJFLS");
-		 
-		Long b = jdbcDao.saveOrUpdate (u1);
-		
-		logger.info(b);
-		
-	}
+	 
 	
 	@Test
 	public void save(){
@@ -214,9 +97,8 @@ public class JdbcDao_Test {
 	}
 	@Test 
 	public void get4json (){
-		String json = "{\"teacher\":{\"teacherName\":\"hechen2\"}}";
-		
-		String rJson = jdbcDao.get4json(json);
+		String json = "{\"teacher\":{\"teacherName\":\"hechen\"}}";
+		String rJson = jdbcDao.get(json);
 		logger.info(rJson);
 	}
 }

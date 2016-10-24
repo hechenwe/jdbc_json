@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,6 +21,9 @@ import org.apache.log4j.Logger;
 
 import com.sooncode.jdbc.constant.DATA;
 import com.sooncode.jdbc.constant.STRING;
+import com.sooncode.jdbc.util.T2E;
+import com.sooncode.jdbc.util.create_entity.Column;
+import com.sooncode.jdbc.util.create_entity.Jdbc2Java;
 
 /**
  * 数据库
@@ -175,7 +179,54 @@ public class DBs {
 
 		return connection;
 	}
+	/**
+	 * 查询数据库表的所有字段 构造 “字段属性模型”
+	 * 
+	 * @param databaseName
+	 * @param tableName
+	 * @return
+	 * @throws SQLException
+	 */
+	public static synchronized Map<String,Column> getColumns(String dbKey,  String tableName) {
+		DB db = DBs.dBcache.get(dbKey); 
+		String dataBaseName = db.getDataName();
+		try {
 
+			Map<String,Column> columnes = new HashMap<>();
+			ResultSet columnSet = getConnection(dbKey).getMetaData().getColumns(dataBaseName, "%", tableName, "%");
+			while (columnSet.next()) { // 遍历某个表的字段
+
+				String columnRemarks = columnSet.getString("REMARKS");
+
+				String columnName = columnSet.getString("COLUMN_NAME".toUpperCase());
+				String columnType = columnSet.getString("TYPE_NAME");
+				int dataType = Integer.parseInt(columnSet.getString("DATA_TYPE"));
+
+				String javaDataType = Jdbc2Java.getJavaData().get(Jdbc2Java.getJdbcData().get("" + dataType));
+
+				String isAutoinCrement = columnSet.getString("IS_AUTOINCREMENT");
+
+				Column column = new Column();
+				column.setColumnName(columnName.toUpperCase());
+				column.setPropertyName(T2E.toField(columnName));
+				column.setDatabaseDataType(columnType);
+				column.setJavaDataType(javaDataType);
+				column.setColumnRemarks(columnRemarks);
+				column.setIsAutoinCrement(isAutoinCrement);
+				column.setColumnLength(column.getColumnName().length());
+				column.setPropertyLength(column.getPropertyName().length());
+
+				columnes.put(column.getColumnName(),column);
+
+			}
+
+			return columnes;
+		} catch (Exception e) {
+
+			return null;
+		}
+
+	}
 	/**
 	 * 关闭连接资源
 	 * 

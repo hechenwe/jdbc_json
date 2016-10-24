@@ -75,7 +75,7 @@ public class TableBuilder {
 	 * @return
 	 * @throws SQLException
 	 */
-	public Map<String,Column> getColumns(String tableName) {
+	public  Map<String,Column> getColumns(String tableName) {
 
 		try {
 

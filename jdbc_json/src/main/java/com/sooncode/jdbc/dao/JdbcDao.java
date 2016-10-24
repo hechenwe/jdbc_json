@@ -17,6 +17,9 @@ import com.sooncode.jdbc.Jdbc;
 import com.sooncode.jdbc.JdbcFactory;
 import com.sooncode.jdbc.ToEntity;
 import com.sooncode.jdbc.cglib.Cglib;
+import com.sooncode.jdbc.cglib.CglibBean;
+import com.sooncode.jdbc.cglib.CglibCreateBean;
+import com.sooncode.jdbc.constant.DATA;
 import com.sooncode.jdbc.constant.JavaBaseType;
 import com.sooncode.jdbc.constant.SQL_KEY;
 import com.sooncode.jdbc.constant.STRING;
@@ -38,7 +41,7 @@ import com.sooncode.jdbc.util.create_entity.TableBuilder;
  * @author pc
  * 
  */
-public class JdbcDao implements JdbcDaoInterface {
+public class JdbcDao  {
 
 	public final static Logger logger = Logger.getLogger("JdbcDao.class");
 
@@ -46,16 +49,17 @@ public class JdbcDao implements JdbcDaoInterface {
 	 * 数据处理对象JDBC
 	 */
 	private Jdbc jdbc;
-
+    private String dbKey = DATA.DEFAULT_KEY;
 	JdbcDao() {
 		jdbc = JdbcFactory.getJdbc();
 	}
 
 	JdbcDao(String dbKey) {
 		jdbc = JdbcFactory.getJdbc(dbKey);
+		this.dbKey = dbKey;
 	}
 
-	public Object get(Object obj) {
+	/*public Object get(Object obj) {
 		Parameter p = ComSQL.select(obj);
 		List<Map<String, Object>> list = jdbc.executeQueryL(p);
 		if (list.size() != 1) {
@@ -64,16 +68,16 @@ public class JdbcDao implements JdbcDaoInterface {
 			Map<String, Object> map = list.get(0);
 			return ToEntity.toEntityObject(map, obj.getClass());
 		}
-	}
+	}*/
 
-	public List<?> gets(Object obj) {
+	/*public List<?> gets(Object obj) {
 		Parameter p = ComSQL.select(obj);
 		List<Map<String, Object>> list = jdbc.executeQueryL(p);
 		List<?> objects = ToEntity.findEntityObject(list, obj.getClass());
 		return objects;
-	}
+	}*/
 
-	public List<?> gets(Conditions con) {
+	/*public List<?> gets(Conditions con) {
 		Object obj = con.getObj();
 		String tableName = T2E.toColumn(obj.getClass().getSimpleName());
 		String columns = ComSQL.columns(obj);
@@ -84,7 +88,7 @@ public class JdbcDao implements JdbcDaoInterface {
 		List<Map<String, Object>> list = jdbc.executeQueryL(p);
 		List<?> objects = ToEntity.findEntityObject(list, obj.getClass());
 		return objects;
-	}
+	}*/
 
 	public List<?> gets(Class<?> entityClass, Cond cond) {
 		RObject rObj = new RObject(entityClass);
@@ -242,7 +246,7 @@ public class JdbcDao implements JdbcDaoInterface {
 
 	}
 
-	public boolean saveOrUpdates(List<?> objs) {
+	/*public boolean saveOrUpdates(List<?> objs) {
 		List<String> sqls = new LinkedList<>();
 		String readySql = new String();
 		List<Map<Integer, Object>> parameters = new ArrayList<>();
@@ -296,7 +300,7 @@ public class JdbcDao implements JdbcDaoInterface {
 		}
 
 	}
-
+*/
 	public long update(Object object) {
 		if (ToEntity.isNull(object) == false) {
 			return 0L;
@@ -448,7 +452,7 @@ public class JdbcDao implements JdbcDaoInterface {
 		}
 	}
 
-	@Override
+	/*@Override
 	public long update(Object oldEntityObject, Object newEnityObject) {
 		Object old = this.get(oldEntityObject);
 		if (old != null) {
@@ -466,53 +470,20 @@ public class JdbcDao implements JdbcDaoInterface {
 		}
 
 	}
+*/
+	public String get(String json) {
 
-	@SuppressWarnings("unchecked")
-	public String get4json(String json) {
-		Map<String, Object> map = SoonJson.getMap(json);
-		String key = new String();
-		Object val = new String();
-		for (Entry<String, Object> en : map.entrySet()) {
-			key = en.getKey();
-			val = en.getValue();
-			break;
-		}
+		CglibBean cb = new CglibCreateBean(dbKey).getBean(json);
 
-		Map<String, Object> proMap = SoonJson.getMap(val.toString());
-		
-		String tableName = T2E.toTableName(key);
+		Parameter p = ComSQL.select(cb.getBeanName(), cb.getBean());
 
-		TableBuilder tb = new TableBuilder("127.0.0.1", "3306", "root", "hechenwe@gmail.com", "jdbc");
-		Map<String, Column> columns = tb.getColumns(tableName);
-		HashMap<String, Class<?>> propertyMap = new HashMap<>();
-		for (Entry<String, Column> en : columns.entrySet()) {
-			Column c = en.getValue();
-			String propertyName =T2E.toField(  en.getKey());
-			try {
-				propertyMap.put(propertyName, Class.forName("java.lang."+c.getJavaDataType()));
-			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
-			}
-		}
-		// 生成动态 Bean
-		Cglib bean = new Cglib(propertyMap);
-		for (Entry<String, Object> en : proMap.entrySet()) {
-		bean.setValue(en.getKey(), en.getValue());
-		}
-		// 获得bean的实体
-		Object object = bean.getObject();
+		List<Map<String, Object>> list = jdbc.executeQueryL(p);
 
-		 
+		String str = SoonJson.getJsonArray(list);
 
-	    Parameter  p = 	ComSQL.select(tableName, object);
-		 
-		List<Map<String,Object>> list =   jdbc.executeQueryL(p) ;
-		 
-		String str = 	 SoonJson.getJsonArray(list);
-		 
-		
 		return str;
 	}
+
 	
 	 
 
