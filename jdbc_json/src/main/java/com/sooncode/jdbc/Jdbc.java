@@ -27,6 +27,7 @@ import com.sooncode.jdbc.db.DBs;
 import com.sooncode.jdbc.result.ResultMap;
 import com.sooncode.jdbc.sql.Parameter;
 import com.sooncode.jdbc.sql.verification.SqlVerification;
+import com.sooncode.jdbc.util.T2E;
 
 /**
  * 执行SQL语句核心类
@@ -237,7 +238,7 @@ public class Jdbc {
 				for (int i = 1; i <= columnCount; i++) {
 					String columnName = resultSetMetaData.getColumnLabel(i).toUpperCase();// 获取别名
 					Object columnValue = resultSet.getObject(i);
-					map.put(columnName, columnValue);
+					map.put(T2E.toField(columnName), columnValue);
 				}
 				resultList.add(map);
 			}

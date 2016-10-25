@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.sooncode.jdbc.cglib.CglibBean;
 import com.sooncode.jdbc.constant.CLASS_NAME;
 import com.sooncode.jdbc.constant.DATE_FORMAT;
 import com.sooncode.jdbc.constant.SQL_KEY;
@@ -31,9 +32,9 @@ public class ComSQL {
 	 *            数据对象
 	 * @return 可执行SQL
 	 */
-	public static Parameter insert(Object object) {
-		 
-		String tableName = T2E.toColumn(object.getClass().getSimpleName());
+	public static Parameter insert(CglibBean bean) {
+		Object object = bean.getBean();
+		String tableName = T2E.toColumn(bean.getBeanName());
 		Map<String, Object> map =  new RObject(object).getFiledAndValue();
 		String columnString = SQL_KEY.L_BRACKET;
 		String filedString = SQL_KEY.L_BRACKET;
@@ -218,9 +219,10 @@ public class ComSQL {
 	 * @param obj
 	 * @return
 	 */
-	public static String columns (Object object){
-		String tableName = T2E.toColumn(object.getClass().getSimpleName());
-		Map<String, Object> columns = new RObject(object).getFiledAndValue();
+	public static String columns (CglibBean bean){
+		String tableName = T2E.toTableName( bean.getBeanName() ) ;
+		 
+		Map<String, Object> columns = new RObject(bean.getBean()).getFiledAndValue();
 		int m = 0;
 		String c = new String();
 		for (Entry<String, Object> entry : columns.entrySet()) {
@@ -239,14 +241,14 @@ public class ComSQL {
 	 * @param obj
 	 * @return
 	 */
-	public static String columns (Object...objs){
+	public static String columns (CglibBean...beans){
 		 String sql = new String ();
 		 int i = 0;
-		 for (Object o : objs) {
+		 for (CglibBean b : beans) {
 			 if(i != 0){
 				 sql = sql + SQL_KEY.COMMA;
 			 }
-			sql = sql + columns(o);
+			sql = sql + columns(b);
 			i++;
 		}
 		 return sql;

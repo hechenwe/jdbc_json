@@ -23,7 +23,7 @@ import com.sooncode.jdbc.constant.DATA;
 import com.sooncode.jdbc.constant.JavaBaseType;
 import com.sooncode.jdbc.constant.SQL_KEY;
 import com.sooncode.jdbc.constant.STRING;
-import com.sooncode.jdbc.json.SoonJson;
+import com.sooncode.jdbc.json.SJson;
 import com.sooncode.jdbc.reflect.Genericity;
 import com.sooncode.jdbc.reflect.RObject;
 import com.sooncode.jdbc.sql.ComSQL;
@@ -90,20 +90,18 @@ public class JdbcDao  {
 		return objects;
 	}*/
 
-	public List<?> gets(Class<?> entityClass, Cond cond) {
-		RObject rObj = new RObject(entityClass);
-		Object obj = rObj.getObject();
-		String tableName = T2E.toColumn(obj.getClass().getSimpleName());
-		String columns = ComSQL.columns(obj);
-		Parameter p = cond.getParameter();
-		String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM + tableName + SQL_KEY.WHERE + p.getReadySql();
-		p.setReadySql(sql);
-		List<Map<String, Object>> list = jdbc.executeQueryL(p);
-		List<?> objects = ToEntity.findEntityObject(list, obj.getClass());
-		return objects;
-	}
+	/*
+	 * public List<?> gets(Class<?> entityClass, Cond cond) { RObject rObj = new
+	 * RObject(entityClass); Object obj = rObj.getObject(); String tableName =
+	 * T2E.toColumn(obj.getClass().getSimpleName()); String columns =
+	 * ComSQL.columns(obj); Parameter p = cond.getParameter(); String sql =
+	 * SQL_KEY.SELECT + columns + SQL_KEY.FROM + tableName + SQL_KEY.WHERE +
+	 * p.getReadySql(); p.setReadySql(sql); List<Map<String, Object>> list =
+	 * jdbc.executeQueryL(p); List<?> objects = ToEntity.findEntityObject(list,
+	 * obj.getClass()); return objects; }
+	 */
 
-	public Pager<?> getPager(long pageNum, long pageSize, Object left, Object... others) {
+	/*public Pager<?> getPager(long pageNum, long pageSize, Object left, Object... others) {
 		RObject leftRO = new RObject(left);
 		// 1.单表
 		if (others.length == 0) {
@@ -156,9 +154,9 @@ public class JdbcDao  {
 		} else {// 一对一
 			return o2o(pageNum, pageSize, left, others);
 		}
-	}
+	}*/
 
-	public Pager<?> getPager(long pageNum, long pageSize, Conditions conditions) {
+	/*public Pager<?> getPager(long pageNum, long pageSize, Conditions conditions) {
 		String columns = ComSQL.columns(conditions.getObj());
 		Parameter where = conditions.getWhereSql();
 		String tableName = T2E.toColumn(conditions.getObj().getClass().getSimpleName());
@@ -181,9 +179,9 @@ public class JdbcDao  {
 		List<?> lists = ToEntity.findEntityObject(list, conditions.getObj().getClass());
 		Pager<?> pager = new Pager<>(pageNum, pageSize, size, lists);
 		return pager;
-	}
+	}*/
 
-	public Pager<?> getPager(long pageNum, long pageSize, Class<?> entityClass, Cond cond) {
+	/*public Pager<?> getPager(long pageNum, long pageSize, Class<?> entityClass, Cond cond) {
 
 		if (entityClass == null || cond == null || cond.isHaveCond() == false) {
 			return null;
@@ -213,19 +211,16 @@ public class JdbcDao  {
 		Pager<?> pager = new Pager<>(pageNum, pageSize, size, lists);
 		return pager;
 	}
-
-	public long save(Object object) {
-		// 验证obj
-		if (ToEntity.isNull(object) == false) {
-			return 0L;
-		}
-		Parameter p = ComSQL.insert(object);
+*/
+	public long save(String  jsonString) {
+		CglibBean cb = new CglibCreateBean(dbKey).getBean(jsonString);
+		Parameter p = ComSQL.insert(cb);
 		long n = jdbc.executeUpdate(p);
 		return n;
 
 	}
 
-	public boolean saves(List<?> objs) {
+	/*public boolean saves(List<?> objs) {
 		// 验证obj
 		if (objs == null) {
 			return false;
@@ -244,7 +239,7 @@ public class JdbcDao  {
 		}
 		return jdbc.executeUpdates(sqls);
 
-	}
+	}*/
 
 	/*public boolean saveOrUpdates(List<?> objs) {
 		List<String> sqls = new LinkedList<>();
@@ -301,7 +296,7 @@ public class JdbcDao  {
 
 	}
 */
-	public long update(Object object) {
+	/*public long update(Object object) {
 		if (ToEntity.isNull(object) == false) {
 			return 0L;
 		}
@@ -313,9 +308,9 @@ public class JdbcDao  {
 		long n = jdbc.executeUpdate(p);
 		return n;
 
-	}
+	}*/
 
-	public long delete(Object object) {
+	/*public long delete(Object object) {
 		if (ToEntity.isNull(object) == false) {
 			return 0L;
 		}
@@ -323,7 +318,7 @@ public class JdbcDao  {
 		long n = jdbc.executeUpdate(p);
 		return n;
 
-	}
+	}*/
 
 	/**
 	 * 
@@ -333,7 +328,7 @@ public class JdbcDao  {
 	 * @param others
 	 * @return
 	 */
-	private Pager<?> o2o(Long pageNum, Long pageSize, Object left, Object... others) {
+	/*private Pager<?> o2o(Long pageNum, Long pageSize, Object left, Object... others) {
 		Parameter p = ComSQL.getO2O(left, others);
 		// logger.debug(sql);
 		List<Map<String, Object>> list = jdbc.executeQueryL(p);
@@ -386,9 +381,9 @@ public class JdbcDao  {
 		long size = getSize(left, others);
 		Pager<?> pager = new Pager<>(pageNum, pageSize, size, resultList);
 		return pager;
-	}
+	}*/
 
-	public long count(String key, Object obj) {
+	/*public long count(String key, Object obj) {
 		String sql = "SELECT COUNT(" + key + ") AS SIZE" + " FROM " + T2E.toTableName(obj.getClass().getSimpleName())
 				+ " WHERE 1=1 " + ComSQL.where(obj).getReadySql();
 		Parameter p = new Parameter();
@@ -401,7 +396,7 @@ public class JdbcDao  {
 		} else {
 			return 0L;
 		}
-	}
+	}*/
 
 	/**
 	 * 获取查询长度
@@ -410,7 +405,7 @@ public class JdbcDao  {
 	 * @param others
 	 * @return
 	 */
-	private long getSize(Object left, Object... others) {
+	/*private long getSize(Object left, Object... others) {
 		Parameter p = new Parameter();
 
 		if (others.length == 0) { // 单表
@@ -450,7 +445,7 @@ public class JdbcDao  {
 		} else {
 			return (long) obj;
 		}
-	}
+	}*/
 
 	/*@Override
 	public long update(Object oldEntityObject, Object newEnityObject) {
@@ -471,16 +466,18 @@ public class JdbcDao  {
 
 	}
 */
-	public String get(String json) {
+	public String get(Conditions conditions ) {
 
-		CglibBean cb = new CglibCreateBean(dbKey).getBean(json);
-
-		Parameter p = ComSQL.select(cb.getBeanName(), cb.getBean());
-
+		CglibBean cb = new CglibCreateBean(dbKey).getBean(conditions.getJson());
+		String columns = ComSQL.columns(cb );
+		Parameter where = conditions.getWhereSql();
+		Parameter p = new Parameter();// ComSQL.select(cb.getBeanName(), cb.getBean());
+		String tableName =T2E.toTableName(cb.getBeanName());
+		String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM + tableName + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE+ where.getReadySql() ;
+		p.setReadySql(sql);
+		p.setParams(where.getParams());
 		List<Map<String, Object>> list = jdbc.executeQueryL(p);
-
-		String str = SoonJson.getJsonArray(list);
-
+		String str =new SJson(list).getJsonString() ;
 		return str;
 	}
 

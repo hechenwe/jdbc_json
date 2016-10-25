@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 
 import com.sooncode.jdbc.constant.SQL_KEY;
 import com.sooncode.jdbc.constant.STRING;
+import com.sooncode.jdbc.json.SJson;
 import com.sooncode.jdbc.reflect.RObject;
 import com.sooncode.jdbc.sql.Parameter;
 import com.sooncode.jdbc.sql.condition.sign.Sign;
@@ -19,11 +20,8 @@ import com.sooncode.jdbc.util.T2E;
  *
  */
 public class Conditions {
-	/**
-	 * 查询条件模型对象
-	 */
-	private Object obj;
-
+	 
+    private String json ;
 	private Map<String, Condition> ces;
 
 	/**
@@ -31,10 +29,11 @@ public class Conditions {
 	 */
 	private String oderByes =new String();
 
-	public Conditions(Object obj) {
-		this.obj = obj;
-		RObject rObj = new RObject(obj);
-		Map<String, Object> map = rObj.getFiledAndValue();
+	public Conditions(String json) {
+		SJson sj = new  SJson(json);
+		this.json = sj.getJsonString();
+		String tableName =sj.getTableName();
+		Map<String, Object> map =new SJson(sj.getFields(tableName).toString()).getMap();
 		Map<String, Condition> list = new HashMap<>();
 		for (Entry<String, Object> en : map.entrySet()) {
 			String key = en.getKey();
@@ -251,8 +250,9 @@ public class Conditions {
 		return p;
 	}
 
-	public Object getObj() {
-		return obj;
+	public String getJson() {
+		return json;
 	}
+ 
 
 }
