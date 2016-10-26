@@ -45,12 +45,7 @@ public class JdbcDao  {
 		jdbc = JdbcFactory.getJdbc(dbKey);
 		this.dbKey = dbKey;
 	}
-
-	 
-
-	 
-
-	 
+ 
 
 	public Page getPage(long pageNum, long pageSize, Conditions leftConditions, Conditions... others) {
 		

@@ -25,6 +25,8 @@ public class JdbcDao_Test {
 		JsonBean  t = new JsonBean(json);
 		t.updateField("createDate", new Date());
 		t.addField("teacherAge", 45);
+		t.addField("address", "beijing");
+		t.updateField("teacherName", "TOM");
 		Long b = jdbcDao.save(t);
 		logger.info(b);
 		
@@ -61,7 +63,7 @@ public class JdbcDao_Test {
 	
 	@Test 
 	public void getPage(){
-		String json = "{\"teacher\":{\"teacherName\":\"hechen\"}}";
+		String json = "{\"teacher\":{\"teacherName\":\"TOM\"}}";
 		JsonBean j = new JsonBean(json);
 		Conditions c = new Conditions(j);
 		c.setOderBy("clazzId", Sort.ASC);

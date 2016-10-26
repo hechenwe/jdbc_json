@@ -38,8 +38,8 @@ public class SJson__Test {
 		sj2.addFields("name", "hechen");
 		sj2.addObject("nb", map);
 		//sj2.removeFields("name");
-		sj2.updateFields("name", "Tom");
-		//logger.info(sj2.getJsonString());
+		//sj2.updateFields("name", "Tom");
+		logger.info(sj2.getJsonString());
 		//logger.info(sj2.getFields("nb"));
 		logger.info(sj2.getFields("nb.phots[1].url"));
 		
