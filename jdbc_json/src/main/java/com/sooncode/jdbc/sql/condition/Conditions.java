@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 
 import com.sooncode.jdbc.constant.SQL_KEY;
 import com.sooncode.jdbc.constant.STRING;
+import com.sooncode.jdbc.json.JsonBean;
 import com.sooncode.jdbc.json.SJson;
 import com.sooncode.jdbc.reflect.RObject;
 import com.sooncode.jdbc.sql.Parameter;
@@ -20,20 +21,18 @@ import com.sooncode.jdbc.util.T2E;
  *
  */
 public class Conditions {
-	 
-    private String json ;
+
+	private JsonBean bean;
 	private Map<String, Condition> ces;
 
 	/**
 	 * 排序的SQL片段
 	 */
-	private String oderByes =new String();
+	private String oderByes = new String();
 
-	public Conditions(String json) {
-		SJson sj = new  SJson(json);
-		this.json = sj.getJsonString();
-		String tableName =sj.getTableName();
-		Map<String, Object> map =new SJson(sj.getFields(tableName).toString()).getMap();
+	public Conditions(JsonBean bean) {
+		this.bean = bean;
+		Map<String, Object> map = bean.getFields();
 		Map<String, Condition> list = new HashMap<>();
 		for (Entry<String, Object> en : map.entrySet()) {
 			String key = en.getKey();
@@ -58,7 +57,7 @@ public class Conditions {
 
 		Condition c = ces.get(key);
 		if (c != null) {
-			c.setConditionSign(sign+new String());
+			c.setConditionSign(sign + new String());
 			ces.put(c.getKey(), c);
 		}
 		return this;
@@ -81,7 +80,7 @@ public class Conditions {
 			if (obj != null) {
 				c.setVal(obj);
 			}
-			c.setConditionSign(sign+new String());
+			c.setConditionSign(sign + new String());
 			ces.put(c.getKey(), c);
 		}
 		return this;
@@ -103,7 +102,8 @@ public class Conditions {
 		Condition c = ces.get(key);
 		c.setType("0");
 		if (c != null) {
-			String sql = STRING.SPACING  + T2E.toColumn(key) + SQL_KEY.BETWEEN  + start + SQL_KEY.AND  + end + STRING.SPACING;
+			String sql = STRING.SPACING + T2E.toColumn(key) + SQL_KEY.BETWEEN + start + SQL_KEY.AND + end
+					+ STRING.SPACING;
 			c.setCondition(sql);
 			ces.put(c.getKey(), c);
 		}
@@ -121,7 +121,10 @@ public class Conditions {
 		Condition c = ces.get(key);
 		c.setType("0");
 		if (c != null) {
-			String sql = STRING.SPACING + T2E.toColumn(key) + SQL_KEY.IS+SQL_KEY.NULL + STRING.SPACING;//" IS NULL ";
+			String sql = STRING.SPACING + T2E.toColumn(key) + SQL_KEY.IS + SQL_KEY.NULL + STRING.SPACING;// "
+																											// IS
+																											// NULL
+																											// ";
 			c.setCondition(sql);
 			ces.put(c.getKey(), c);
 		}
@@ -139,7 +142,11 @@ public class Conditions {
 		Condition c = ces.get(key);
 		c.setType("0");
 		if (c != null) {
-			String sql = STRING.SPACING + T2E.toColumn(key) +  SQL_KEY.IS + SQL_KEY.NOT + SQL_KEY.NULL+ STRING.SPACING ;//" IS NOT NULL ";
+			String sql = STRING.SPACING + T2E.toColumn(key) + SQL_KEY.IS + SQL_KEY.NOT + SQL_KEY.NULL + STRING.SPACING;// "
+																														// IS
+																														// NOT
+																														// NULL
+																														// ";
 			c.setCondition(sql);
 			ces.put(c.getKey(), c);
 		}
@@ -183,7 +190,7 @@ public class Conditions {
 				this.oderByes = this.oderByes + STRING.SPACING + key.toUpperCase() + STRING.SPACING + sort.name();
 
 			} else {
-				this.oderByes = this.oderByes + SQL_KEY.COMMA  + key.toUpperCase() + STRING.SPACING + sort.name();
+				this.oderByes = this.oderByes + SQL_KEY.COMMA + key.toUpperCase() + STRING.SPACING + sort.name();
 			}
 		}
 
@@ -193,66 +200,72 @@ public class Conditions {
 
 	/**
 	 * 获取预编译SQL模型
+	 * 
 	 * @return
 	 */
 	public Parameter getWhereSql() {
-		
+
 		Parameter p = new Parameter();
-		Map<Integer,Object> para = new HashMap<>();
+		Map<Integer, Object> para = new HashMap<>();
 		String sql = new String();
-		int index =1;
+		int index = 1;
 		for (Entry<String, Condition> en : this.ces.entrySet()) {
 			Condition c = en.getValue();
 			String con = T2E.toColumn(c.getKey());
-			if(c.getType().equals("1")){
-				if (c.getVal() != null || c.getVales()!=null) {
+			if (c.getType().equals("1")) {
+				if (c.getVal() != null || c.getVales() != null) {
 					String sign = c.getConditionSign();
-					String newSign = sign ;//Sign.Signmap.get(sign);
-					newSign = newSign == null ? SQL_KEY.EQ  : newSign; //如果字段不为空，但是没有条件符号，默认使用等值查询"="。
+					String newSign = sign;// Sign.Signmap.get(sign);
+					newSign = newSign == null ? SQL_KEY.EQ : newSign; // 如果字段不为空，但是没有条件符号，默认使用等值查询"="。
 					if (newSign.equals(SQL_KEY.LIKE)) {
-						sql = sql + SQL_KEY.AND + con + SQL_KEY.LIKE +STRING.SPACING + STRING.QUESTION ;// " AND LIKE ?"; 
-						para.put(index,STRING.PERCENT +c.getVal()+STRING.PERCENT);
+						sql = sql + SQL_KEY.AND + con + SQL_KEY.LIKE + STRING.SPACING + STRING.QUESTION;// "
+																										// AND
+																										// LIKE
+																										// ?";
+						para.put(index, STRING.PERCENT + c.getVal() + STRING.PERCENT);
 						index++;
-					} else if(sign!=null && sign.equals(SQL_KEY.IN)){
-						
-						String vales = SQL_KEY.L_BRACKET ;// "(";
-						for (int i = 0;i<c.getVales().length ;i++) {
-							if(i!=0){
-								vales = vales + STRING.SPACING + STRING.COMMA + STRING.QUESTION + STRING.SPACING ;//  " ,? ";
-								
-							}else{
-							    vales = vales   + STRING.QUESTION + STRING.SPACING ;//"? ";
+					} else if (sign != null && sign.equals(SQL_KEY.IN)) {
+
+						String vales = SQL_KEY.L_BRACKET;// "(";
+						for (int i = 0; i < c.getVales().length; i++) {
+							if (i != 0) {
+								vales = vales + STRING.SPACING + STRING.COMMA + STRING.QUESTION + STRING.SPACING;// "
+																													// ,?
+																													// ";
+
+							} else {
+								vales = vales + STRING.QUESTION + STRING.SPACING;// "?
+																					// ";
 							}
-							para.put(index,c.getVales()[i]);
+							para.put(index, c.getVales()[i]);
 							index++;
 						}
-						vales=vales+ SQL_KEY.R_BRACKET + STRING.SPACING ;//  ") ";
-						sql = sql +SQL_KEY.AND  + con + SQL_KEY.IN  +vales;
+						vales = vales + SQL_KEY.R_BRACKET + STRING.SPACING;// ")
+																			// ";
+						sql = sql + SQL_KEY.AND + con + SQL_KEY.IN + vales;
 					}
-					
+
 					else {
-						sql = sql + SQL_KEY.AND   + con + STRING.SPACING +  newSign + STRING.QUESTION ;//"?";
-						para.put(index,c.getVal());
+						sql = sql + SQL_KEY.AND + con + STRING.SPACING + newSign + STRING.QUESTION;// "?";
+						para.put(index, c.getVal());
 						index++;
 					}
 				}
-			}else{//自定义 
-				sql = sql + SQL_KEY.AND  + c.getCondition();
+			} else {// 自定义
+				sql = sql + SQL_KEY.AND + c.getCondition();
 			}
-			
-			
+
 		}
 		if (!this.oderByes.equals("")) {
-			sql = sql + SQL_KEY.ORDER_BY  + this.oderByes;
+			sql = sql + SQL_KEY.ORDER_BY + this.oderByes;
 		}
 		p.setReadySql(sql);
 		p.setParams(para);
 		return p;
 	}
 
-	public String getJson() {
-		return json;
+	public JsonBean getJsonBean() {
+		return this.bean;
 	}
- 
 
 }

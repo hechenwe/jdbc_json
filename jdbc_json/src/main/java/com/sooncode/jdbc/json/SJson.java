@@ -1,14 +1,22 @@
 package com.sooncode.jdbc.json;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 public class SJson {
+	
+	
+	
+	private static final String DATE_FORMAT =  "yyyy-MM-dd H:m:s" ;
 	/**
 	 * json 格式的字符串
 	 */
@@ -188,7 +196,7 @@ public class SJson {
 	 */
 	public void removeFields(String key) {
 		if (key != null && !key.trim().equals("")) {
-			this.jObj.remove(key);
+			Object r = this.jObj.remove(key);
 			this.json = this.jObj.toString();
 		}
 	}
@@ -300,7 +308,7 @@ public class SJson {
 	 * @param json
 	 * @return
 	 */
-	private boolean isJson(String json) {
+	public static boolean isJson(String json) {
 		if (json == null || json.trim().equals("")) {
 			return false;
 		}
@@ -320,7 +328,7 @@ public class SJson {
 	 * @param json
 	 * @return
 	 */
-	private boolean isJsonArray(String json) {
+	public static boolean isJsonArray(String json) {
 		if (json == null || json.trim().equals("")) {
 			return false;
 		}
@@ -351,11 +359,20 @@ public class SJson {
 					JSONObject jVal = getJSONObject(nextMap);
 					jObj.accumulate(key, jVal);
 				} else {
-					jObj.accumulate(key, val);
+					if(val instanceof Date){
+						String str = new SimpleDateFormat(DATE_FORMAT).format(val);
+						jObj.accumulate(key, str);
+					}else{
+						jObj.accumulate(key, val);
+					}
 				}
 			}
 		}
 		return jObj;
 
+	}
+	
+	public String toString(){
+		return this.getJsonString();
 	}
 }

@@ -5,7 +5,7 @@ import java.util.List;
  
 import com.sooncode.jdbc.sql.condition.Cond;
 import com.sooncode.jdbc.sql.condition.Conditions;
-import com.sooncode.jdbc.util.Pager;
+import com.sooncode.jdbc.util.Page;
  
 
 /**
@@ -53,7 +53,7 @@ public interface JdbcDaoInterface {
 	 * @param others
 	 * @return
 	 */
-	public Pager<?> getPager(long pageNum, long pageSize, Object leftEntityObject, Object... others) ; 
+	public Page  getPager(long pageNum, long pageSize, Object leftEntityObject, Object... others) ; 
     
 	/**
 	 * 分页查询 （单表查询）
@@ -62,7 +62,7 @@ public interface JdbcDaoInterface {
 	 * @param conditions
 	 * @return
 	 */
-	public Pager<?> getPager(long pageNum, long pageSize, Conditions conditions)  ;
+	public Page  getPager(long pageNum, long pageSize, Conditions conditions)  ;
 	/**
 	 * 分页查询 （单表查询）
 	 * @param pageNum 当前页
@@ -71,7 +71,7 @@ public interface JdbcDaoInterface {
 	 * @param cond 查询条件模型
 	 * @return 分页模型 ;参数异常时放回空模型
 	 */
-	public Pager<?> getPager(long pageNum, long pageSize,Class<?> entityClass, Cond cond)  ;
+	public Page  getPager(long pageNum, long pageSize,Class<?> entityClass, Cond cond)  ;
 	/**
 	 * 保存一个实体对象
 	 * 

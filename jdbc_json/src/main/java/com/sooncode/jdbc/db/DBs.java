@@ -24,6 +24,7 @@ import com.sooncode.jdbc.constant.STRING;
 import com.sooncode.jdbc.util.T2E;
 import com.sooncode.jdbc.util.create_entity.Column;
 import com.sooncode.jdbc.util.create_entity.Jdbc2Java;
+import com.sooncode.jdbc.util.create_entity.PrimaryKey;
 
 /**
  * 数据库
@@ -187,46 +188,44 @@ public class DBs {
 	 * @return
 	 * @throws SQLException
 	 */
-	public static synchronized Map<String,Column> getColumns(String dbKey,  String tableName) {
+	public static synchronized Map<String,Object> getFields(String dbKey,  String beanName) {
+		String tableName = T2E.toTableName(beanName);
 		DB db = DBs.dBcache.get(dbKey); 
 		String dataBaseName = db.getDataName();
 		try {
-
-			Map<String,Column> columnes = new HashMap<>();
+			 
 			ResultSet columnSet = getConnection(dbKey).getMetaData().getColumns(dataBaseName, "%", tableName, "%");
+			Map<String,Object> map = new HashMap<>();
 			while (columnSet.next()) { // 遍历某个表的字段
-
-				String columnRemarks = columnSet.getString("REMARKS");
-
 				String columnName = columnSet.getString("COLUMN_NAME".toUpperCase());
-				String columnType = columnSet.getString("TYPE_NAME");
-				int dataType = Integer.parseInt(columnSet.getString("DATA_TYPE"));
-
-				String javaDataType = Jdbc2Java.getJavaData().get(Jdbc2Java.getJdbcData().get("" + dataType));
-
-				String isAutoinCrement = columnSet.getString("IS_AUTOINCREMENT");
-
-				Column column = new Column();
-				column.setColumnName(columnName.toUpperCase());
-				column.setPropertyName(T2E.toField(columnName));
-				column.setDatabaseDataType(columnType);
-				column.setJavaDataType(javaDataType);
-				column.setColumnRemarks(columnRemarks);
-				column.setIsAutoinCrement(isAutoinCrement);
-				column.setColumnLength(column.getColumnName().length());
-				column.setPropertyLength(column.getPropertyName().length());
-
-				columnes.put(column.getColumnName(),column);
-
+				map.put(T2E.toField(columnName), null);
 			}
-
-			return columnes;
+			return map;
 		} catch (Exception e) {
-
 			return null;
 		}
 
 	}
+	public static synchronized  String  getPrimaryField(String dbKey,  String beanName){
+		String tableName = T2E.toTableName(beanName);
+		DB db = DBs.dBcache.get(dbKey); 
+		String dataBaseName = db.getDataName();
+		String primaryKeyName = null;
+		try {
+			ResultSet primaryKeyResultSet =  getConnection(dbKey).getMetaData().getPrimaryKeys(dataBaseName, null, tableName);
+			while (primaryKeyResultSet.next()) { // 遍历某个表的主键
+			    primaryKeyName = primaryKeyResultSet.getString("COLUMN_NAME");
+			}
+			 return T2E.toField(primaryKeyName.toUpperCase());
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+	}
+	
+	
+	
 	/**
 	 * 关闭连接资源
 	 * 

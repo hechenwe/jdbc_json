@@ -1,39 +1,26 @@
 package com.sooncode.jdbc.dao;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+ 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
+ 
 
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.chainsaw.Main;
 
 import com.sooncode.jdbc.Jdbc;
 import com.sooncode.jdbc.JdbcFactory;
-import com.sooncode.jdbc.ToEntity;
-import com.sooncode.jdbc.cglib.Cglib;
-import com.sooncode.jdbc.cglib.CglibBean;
-import com.sooncode.jdbc.cglib.CglibCreateBean;
+import com.sooncode.jdbc.cglib.DbBean;
+import com.sooncode.jdbc.cglib.DbBeanCache;
 import com.sooncode.jdbc.constant.DATA;
-import com.sooncode.jdbc.constant.JavaBaseType;
 import com.sooncode.jdbc.constant.SQL_KEY;
-import com.sooncode.jdbc.constant.STRING;
-import com.sooncode.jdbc.json.SJson;
-import com.sooncode.jdbc.reflect.Genericity;
-import com.sooncode.jdbc.reflect.RObject;
+import com.sooncode.jdbc.json.JsonBean;
 import com.sooncode.jdbc.sql.ComSQL;
 import com.sooncode.jdbc.sql.Parameter;
-import com.sooncode.jdbc.sql.condition.Cond;
 import com.sooncode.jdbc.sql.condition.Conditions;
-import com.sooncode.jdbc.util.Pager;
+import com.sooncode.jdbc.util.Page;
 import com.sooncode.jdbc.util.T2E;
-import com.sooncode.jdbc.util.create_entity.Column;
-import com.sooncode.jdbc.util.create_entity.TableBuilder;
 
 /**
  * Jdbc Dao 服务
@@ -59,61 +46,35 @@ public class JdbcDao  {
 		this.dbKey = dbKey;
 	}
 
-	/*public Object get(Object obj) {
-		Parameter p = ComSQL.select(obj);
-		List<Map<String, Object>> list = jdbc.executeQueryL(p);
-		if (list.size() != 1) {
-			return null;
-		} else {
-			Map<String, Object> map = list.get(0);
-			return ToEntity.toEntityObject(map, obj.getClass());
-		}
-	}*/
+	 
 
-	/*public List<?> gets(Object obj) {
-		Parameter p = ComSQL.select(obj);
-		List<Map<String, Object>> list = jdbc.executeQueryL(p);
-		List<?> objects = ToEntity.findEntityObject(list, obj.getClass());
-		return objects;
-	}*/
+	 
 
-	/*public List<?> gets(Conditions con) {
-		Object obj = con.getObj();
-		String tableName = T2E.toColumn(obj.getClass().getSimpleName());
-		String columns = ComSQL.columns(obj);
-		Parameter p = con.getWhereSql();
-		String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM + tableName + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE
-				+ p.getReadySql();
-		p.setReadySql(sql);
-		List<Map<String, Object>> list = jdbc.executeQueryL(p);
-		List<?> objects = ToEntity.findEntityObject(list, obj.getClass());
-		return objects;
-	}*/
+	 
 
-	/*
-	 * public List<?> gets(Class<?> entityClass, Cond cond) { RObject rObj = new
-	 * RObject(entityClass); Object obj = rObj.getObject(); String tableName =
-	 * T2E.toColumn(obj.getClass().getSimpleName()); String columns =
-	 * ComSQL.columns(obj); Parameter p = cond.getParameter(); String sql =
-	 * SQL_KEY.SELECT + columns + SQL_KEY.FROM + tableName + SQL_KEY.WHERE +
-	 * p.getReadySql(); p.setReadySql(sql); List<Map<String, Object>> list =
-	 * jdbc.executeQueryL(p); List<?> objects = ToEntity.findEntityObject(list,
-	 * obj.getClass()); return objects; }
-	 */
-
-	/*public Pager<?> getPager(long pageNum, long pageSize, Object left, Object... others) {
-		RObject leftRO = new RObject(left);
+	public Page getPage(long pageNum, long pageSize, Conditions leftConditions, Conditions... others) {
+		
+		DbBean leftBean = DbBeanCache.getDbBean(dbKey,leftConditions.getJsonBean()) ;
+		 
 		// 1.单表
 		if (others.length == 0) {
-			Parameter p = ComSQL.select(left, pageNum, pageSize);
+			Parameter p = ComSQL.select(leftBean, pageNum, pageSize);
 			List<Map<String, Object>> list = jdbc.executeQueryL(p);
-			Long size = getSize(left, others);
-
-			List<?> lists = ToEntity.findEntityObject(list, left.getClass());
-			Pager<?> pager = new Pager<>(pageNum, pageSize, size, lists);
+			List<JsonBean> beans = new ArrayList<>();
+			for (Map<String, Object> map : list) {
+				JsonBean jb = new JsonBean(leftConditions.getJsonBean().getBeanName());
+				jb.addFields(map);
+				beans.add(jb);
+			}
+			Long size = getSize(leftConditions, others);
+			Page  pager = new Page (pageNum, pageSize, size, beans);
 			return pager;
 
-		} else if (others.length == 1) {// 3.一对多
+		} else{
+			return null;
+		}
+		
+		/*else if (others.length == 1) {// 3.一对多
 
 			RObject rightRO = new RObject(others[0]);
 			String leftPk = leftRO.getPk();
@@ -153,8 +114,8 @@ public class JdbcDao  {
 
 		} else {// 一对一
 			return o2o(pageNum, pageSize, left, others);
-		}
-	}*/
+		}*/
+	}
 
 	/*public Pager<?> getPager(long pageNum, long pageSize, Conditions conditions) {
 		String columns = ComSQL.columns(conditions.getObj());
@@ -212,8 +173,8 @@ public class JdbcDao  {
 		return pager;
 	}
 */
-	public long save(String  jsonString) {
-		CglibBean cb = new CglibCreateBean(dbKey).getBean(jsonString);
+	public long save(JsonBean  jsonBean) {
+		DbBean cb =  DbBeanCache.getDbBean(dbKey,jsonBean);
 		Parameter p = ComSQL.insert(cb);
 		long n = jdbc.executeUpdate(p);
 		return n;
@@ -296,29 +257,21 @@ public class JdbcDao  {
 
 	}
 */
-	/*public long update(Object object) {
-		if (ToEntity.isNull(object) == false) {
-			return 0L;
-		}
-		Object pkValue = new RObject(object).getPkValue();
-		if (pkValue == null) {
-			return 0L;
-		}
-		Parameter p = ComSQL.update(object);
+	public long update(JsonBean jsonBean) {
+		DbBean dbBean =  DbBeanCache.getDbBean(dbKey,jsonBean); 
+		Parameter p = ComSQL.update(dbBean);
 		long n = jdbc.executeUpdate(p);
 		return n;
 
-	}*/
+	}
 
-	/*public long delete(Object object) {
-		if (ToEntity.isNull(object) == false) {
-			return 0L;
-		}
-		Parameter p = ComSQL.delete(object);
+	public long delete(JsonBean jsonBean) {
+		DbBean dbBean =  DbBeanCache.getDbBean(dbKey,jsonBean); 
+		Parameter p = ComSQL.delete(dbBean);
 		long n = jdbc.executeUpdate(p);
 		return n;
 
-	}*/
+	}
 
 	/**
 	 * 
@@ -405,13 +358,18 @@ public class JdbcDao  {
 	 * @param others
 	 * @return
 	 */
-	/*private long getSize(Object left, Object... others) {
+	private long getSize(Conditions left, Conditions... others) {
+		
+		DbBean leftBean = DbBeanCache.getDbBean(dbKey,left.getJsonBean()) ;
+		
 		Parameter p = new Parameter();
 
 		if (others.length == 0) { // 单表
 
-			p = ComSQL.selectSize(left);
-		} else
+			p = ComSQL.selectSize(leftBean);
+		}
+		
+		/* else
 
 		if (others.length == 1) { // 一对多
 			RObject leftRO = new RObject(left);
@@ -424,8 +382,8 @@ public class JdbcDao  {
 			} else {
 				p = ComSQL.O2OSize(left, others);
 			}
-
-		} else if (others.length == 2) {// 多对多
+ 
+		  else if (others.length == 2) {// 多对多
 			String leftPk = new RObject(left).getPk();
 			String rightPk = new RObject(others[1]).getPk();
 			RObject middle = new RObject(others[0]);
@@ -437,15 +395,15 @@ public class JdbcDao  {
 		} else {// 一对一
 			p = ComSQL.O2OSize(left, others);
 		}
-
+*/
 		Map<String, Object> map = jdbc.executeQueryM(p);
 		Object obj = map.get(SQL_KEY.SIZE);
 		if (obj == null) {
 			return 0L;
 		} else {
 			return (long) obj;
-		}
-	}*/
+		} 
+	} 
 
 	/*@Override
 	public long update(Object oldEntityObject, Object newEnityObject) {
@@ -466,22 +424,23 @@ public class JdbcDao  {
 
 	}
 */
-	public String get(Conditions conditions ) {
+	public List<JsonBean> get(Conditions conditions ) {
 
-		CglibBean cb = new CglibCreateBean(dbKey).getBean(conditions.getJson());
+		DbBean cb = DbBeanCache.getDbBean(dbKey,conditions.getJsonBean()) ;
 		String columns = ComSQL.columns(cb );
 		Parameter where = conditions.getWhereSql();
-		Parameter p = new Parameter();// ComSQL.select(cb.getBeanName(), cb.getBean());
+		Parameter p = new Parameter(); 
 		String tableName =T2E.toTableName(cb.getBeanName());
 		String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM + tableName + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE+ where.getReadySql() ;
 		p.setReadySql(sql);
 		p.setParams(where.getParams());
 		List<Map<String, Object>> list = jdbc.executeQueryL(p);
-		String str =new SJson(list).getJsonString() ;
-		return str;
+		List<JsonBean> beans = new ArrayList<>();
+		for (Map<String, Object> map : list) {
+			JsonBean bean = new JsonBean(cb.getBeanName());
+			bean.addFields(map);
+			beans.add(bean);
+		}
+		return beans;
 	}
-
-	
-	 
-
 }

@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.sooncode.jdbc.cglib.CglibBean;
+import com.sooncode.jdbc.cglib.DbBean;
 import com.sooncode.jdbc.constant.CLASS_NAME;
 import com.sooncode.jdbc.constant.DATE_FORMAT;
 import com.sooncode.jdbc.constant.SQL_KEY;
@@ -32,10 +32,10 @@ public class ComSQL {
 	 *            数据对象
 	 * @return 可执行SQL
 	 */
-	public static Parameter insert(CglibBean bean) {
-		Object object = bean.getBean();
+	public static Parameter insert(DbBean bean) {
+		 
 		String tableName = T2E.toColumn(bean.getBeanName());
-		Map<String, Object> map =  new RObject(object).getFiledAndValue();
+		Map<String, Object> map = bean.getFields();
 		String columnString = SQL_KEY.L_BRACKET;
 		String filedString = SQL_KEY.L_BRACKET;
 		int n = 0;
@@ -77,10 +77,10 @@ public class ComSQL {
 	 * @param object
 	 * @return
 	 */
-	public static Parameter delete(Object object) { 
+	public static Parameter delete(DbBean dbBean) { 
 		Parameter p = new Parameter();
-		String tableName = T2E.toColumn(object.getClass().getSimpleName());
-		Map<String, Object> map = new RObject(object).getFiledAndValue();
+		String tableName = T2E.toColumn(dbBean.getBeanName());
+		Map<String, Object> map = dbBean.getFields();
 		String sql = SQL_KEY.DELETE  + tableName + SQL_KEY.WHERE;
 		String s = new String ();
 		int n = 0;
@@ -113,30 +113,28 @@ public class ComSQL {
 	 * @param obj
 	 * @return
 	 */
-	public static Parameter update(Object object) {
+	public static Parameter update(DbBean dbBean) {
 		Parameter p = new Parameter();
-		String tableName = T2E.toColumn(object.getClass().getSimpleName());
-		Map<String, Object> map = new RObject(object).getFiledAndValue();
-		RObject rObject = new RObject(object);
-		 
+		String tableName = T2E.toColumn(dbBean.getBeanName());
+		Map<String, Object> map = dbBean.getFields();
 		String s = new String();
-		String pk = T2E.toColumn(rObject.getPk());
+		String pk = T2E.toColumn(dbBean.getPrimaryField());
 		
 		String pkString = pk + SQL_KEY.EQ + STRING.QUESTION ; 
 		s = s+ pkString;
 		Map<Integer,Object> param = new HashMap<>();
-		param.put(1, rObject.getPkValue());
+		param.put(1, dbBean.getPrimaryFieldValue());
 		int index=2;
 		for (Entry<String, Object> entry : map.entrySet()) {
 			
-			if (entry.getValue() != null && !entry.getKey().trim().equals(rObject.getPk().trim())) {
+			if (entry.getValue() != null && !entry.getKey().trim().equals(pk)) {
 				 
 				s = s +SQL_KEY.COMMA + T2E.toColumn(entry.getKey())  + SQL_KEY.EQ + STRING.QUESTION ;
 				param.put(index,entry.getValue());
 				index++;
 			}
 		}
-		param.put(param.size()+1, rObject.getPkValue());
+		param.put(param.size()+1, dbBean.getPrimaryFieldValue());
 		String sql = SQL_KEY.UPDATE + tableName + SQL_KEY.SET  + s + SQL_KEY.WHERE + pkString;
 		p.setReadySql(sql);
 		p.setParams(param);
@@ -151,9 +149,9 @@ public class ComSQL {
 	 * @param object
 	 * @return 可执行SQL
 	 */
-	public static Parameter select(Object object) {
-		String tableName = T2E.toColumn(object.getClass().getSimpleName());
-		Map<String, Object> map = new RObject(object).getFiledAndValue();
+	public static Parameter select(DbBean dbBean) {
+		String tableName = T2E.toColumn(dbBean.getBeanName());
+		Map<String, Object> map = dbBean.getFields();
 		int m = 0;
 		String s = SQL_KEY.ONE_EQ_ONE;
 		String c = new String();
@@ -219,17 +217,19 @@ public class ComSQL {
 	 * @param obj
 	 * @return
 	 */
-	public static String columns (CglibBean bean){
+	public static String columns (DbBean bean){
 		String tableName = T2E.toTableName( bean.getBeanName() ) ;
 		 
-		Map<String, Object> columns = new RObject(bean.getBean()).getFiledAndValue();
+		Map<String, Object> columns = bean.getFields();
 		int m = 0;
 		String c = new String();
-		for (Entry<String, Object> entry : columns.entrySet()) {
+		for (Entry<String, Object> en : columns.entrySet()) {
+			String columnName = T2E.toColumn(en.getKey());
+			
 			if (m != 0) {
 				c = c + SQL_KEY.COMMA;
 			}
-			c = c +tableName + STRING.POINT+ T2E.toColumn(entry.getKey()) + SQL_KEY.AS+tableName + STRING.UNDERLINE+ T2E.toColumn(entry.getKey());
+			c = c +tableName + STRING.POINT+ columnName + SQL_KEY.AS+tableName + STRING.UNDERLINE+ columnName;
 			m++;
 		}
 		return c;
@@ -241,10 +241,10 @@ public class ComSQL {
 	 * @param obj
 	 * @return
 	 */
-	public static String columns (CglibBean...beans){
+	public static String columns (DbBean...beans){
 		 String sql = new String ();
 		 int i = 0;
-		 for (CglibBean b : beans) {
+		 for (DbBean b : beans) {
 			 if(i != 0){
 				 sql = sql + SQL_KEY.COMMA;
 			 }
@@ -293,9 +293,9 @@ public class ComSQL {
 	 * @param pageSize
 	 * @return
 	 */
-	public static Parameter select(Object object, Long pageNumber, Long pageSize) {
+	public static Parameter select(DbBean dbBean, Long pageNumber, Long pageSize) {
 		Long index = (pageNumber - 1) * pageSize;
-		Parameter p = select(object);
+		Parameter p = select(dbBean);
 		String sql = p.getReadySql() + SQL_KEY.LIMIT + index + STRING.COMMA + pageSize;
 		p.setReadySql(sql);
 		return p;
@@ -307,10 +307,10 @@ public class ComSQL {
 	 * @param object
 	 * @return 可执行SQL
 	 */
-	public static Parameter selectSize(Object object) {
+	public static Parameter selectSize(DbBean dbBean) {
 		Parameter p = new Parameter();
-		String tableName = T2E.toColumn(object.getClass().getSimpleName());
-		Map<String, Object> map = new RObject(object).getFiledAndValue();
+		String tableName = T2E.toColumn(dbBean.getBeanName());
+		Map<String, Object> map = dbBean.getFields();
 		String s = SQL_KEY.ONE_EQ_ONE ;
 		Map<Integer,Object> paramet = new HashMap<>();
 		int index =1;

@@ -66,23 +66,23 @@ public class Jdbc2Java {
 	public static Map<String, String> getJavaData() {
 		Map<String, String> map = new HashMap<String, String>();
 
-		map.put("BIT", "Boolean");
-		map.put("TINYINT", "Integer");
-		map.put("SMALLINT", "Integer");
+		map.put("BIT", "java.lang.Boolean");
+		map.put("TINYINT", "java.lang.Integer");
+		map.put("SMALLINT", "java.lang.Integer");
 
-		map.put("INTEGER", "Integer");
-		map.put("BIGINT", "Long");
-		map.put("FLOAT", "Double");
+		map.put("INTEGER", "java.lang.Integer");
+		map.put("BIGINT", "java.lang.Long");
+		map.put("FLOAT", "java.lang.Double");
 
-		map.put("REAL", "Float");
-		map.put("DOUBLE", "Double");
+		map.put("REAL", "java.lang.Float");
+		map.put("DOUBLE", "java.lang.Double");
 		map.put("NUMERIC", "java.math.BigDecimal");
 
 		map.put("DECIMAL", "java.math.BigDecimal");
-		map.put("CHAR", "String");
-		map.put("VARCHAR", "String");
+		map.put("CHAR", "java.lang.String");
+		map.put("VARCHAR", "java.lang.String");
 
-		map.put("LONGVARCHAR", "String");
+		map.put("LONGVARCHAR", "java.lang.String");
 		map.put("DATE", "java.util.Date");
 		map.put("TIME", "java.sql.Time");
 
@@ -91,28 +91,28 @@ public class Jdbc2Java {
 		map.put("VARBINARY", "byte[]");
 
 		map.put("LONGVARBINARY", "byte[]");
-		map.put("NULL", "Object");
-		map.put("OTHER", "Object");
+		map.put("NULL", "java.lang.Object");
+		map.put("OTHER", "java.lang.Object");
 
-		map.put("JAVA_OBJECT", "Object");
-		map.put("DISTINCT", "Object");
-		map.put("STRUCT", "Object");
+		map.put("JAVA_OBJECT", "java.lang.Object");
+		map.put("DISTINCT", "java.lang.Object");
+		map.put("STRUCT", "java.lang.Object");
 
-		map.put("ARRAY", "Object");
-		map.put("BLOB", "Object");
-		map.put("CLOB", "Object");
+		map.put("ARRAY", "java.lang.Object");
+		map.put("BLOB", "java.lang.Object");
+		map.put("CLOB", "java.lang.Object");
 
-		map.put("REF", "Object");
-		map.put("DATALINK", "Object");
-		map.put("BOOLEAN", "Object");
+		map.put("REF", "java.lang.Object");
+		map.put("DATALINK", "java.lang.Object");
+		map.put("BOOLEAN", "java.lang.Object");
 
-		map.put("ROWID", "Object");
-		map.put("NCHAR", "String");
-		map.put("NVARCHAR", "String");
+		map.put("ROWID", "java.lang.Object");
+		map.put("NCHAR", "java.lang.String");
+		map.put("NVARCHAR", "java.lang.String");
 
-		map.put("LONGNVARCHAR", "String");
-		map.put("NCLOB", "Object");
-		map.put("SQLXML", "String");
+		map.put("LONGNVARCHAR", "java.lang.String");
+		map.put("NCLOB", "java.lang.Object");
+		map.put("SQLXML", "java.lang.String");
 
 		javaData = map;
 		return javaData;

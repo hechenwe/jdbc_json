@@ -4,6 +4,8 @@ package com.sooncode.jdbc.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sooncode.jdbc.json.JsonBean;
+
 /**
  * 分页
  * 
@@ -11,14 +13,14 @@ import java.util.List;
  *
  * @param <T>
  */
-public class Pager <T> {
+public class Page   {
 	
 	//------------------------------------------ 属性 --------------------------------------------------------
 	
 	/** 记录结果集 */
-	private List<T> lists;
+	private List<JsonBean> list;
 	
-	private T entity;
+	private JsonBean  jsonBean;
 	/** 总记录数 */
 	private Long total = 0L; // 总记录数
 	
@@ -45,20 +47,20 @@ public class Pager <T> {
 	
 	//--------------------------------------------- 构造器 ----------------------------------------------------------------
 
-	public Pager(long pageNumber, long pageSize, long total, List<T> lists) {
+	public Page (long pageNumber, long pageSize, long total, List<JsonBean> list) {
 		 
 		 
 		init( total ,pageNumber, pageSize);
-		if(lists==null ){
-			this.lists = new ArrayList<>();
+		if(list==null ){
+			this.list = new ArrayList<>();
 		}else{
-			this.lists = lists;
+			this.list = list;
 		}
 	}
 	
-	public Pager(long pageNumber, long pageSize, long total, T entity) {
+	public Page(long pageNumber, long pageSize, long total, JsonBean jsonBean) {
 		init( total ,pageNumber, pageSize);
-		this.entity = entity;
+		this.jsonBean = jsonBean;
 	}
 
 	/** 设置基本参数 */
@@ -94,14 +96,7 @@ public class Pager <T> {
 	}
 //-----------------------------------------------------get set 方法-----------------------------------------------------------------------
 	
-	public List<T> getLists() {
-		return lists;
-	}
-
-	public void setLists(List<T> lists) {
-		this.lists = lists;
-	}
-	
+	 
 //--------------------------------------------------------------------------------
 	public Long getTotal() {
 		return total;
@@ -174,13 +169,22 @@ public class Pager <T> {
 		this.hasNextPage = hasNextPage;
 	}
 
-	public T getEntity() {
-		return entity;
+	public List<JsonBean> getList() {
+		return list;
 	}
 
-	public void setEntity(T entity) {
-		this.entity = entity;
+	public void setList(List<JsonBean> list) {
+		this.list = list;
 	}
+
+	public JsonBean getJsonBean() {
+		return jsonBean;
+	}
+
+	public void setJsonBean(JsonBean jsonBean) {
+		this.jsonBean = jsonBean;
+	}
+ 
 
 	 
 
