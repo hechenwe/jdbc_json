@@ -249,6 +249,16 @@ public class DBs {
 		}
 	}
 
+	public static void rollback(Connection connection ){
+		try {
+			connection.rollback();
+		} catch (SQLException e) {
+			logger.info("【JDBC】: 回滚失败 ： ");
+			e.printStackTrace();
+		}
+	}
+	
+	
 	/**
 	 * 扫描数据库配置文件
 	 * 

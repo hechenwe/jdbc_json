@@ -1,5 +1,6 @@
 package com.sooncode.jdbc;
  
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import com.sooncode.jdbc.json.JsonBean;
  
 import com.sooncode.jdbc.sql.condition.Conditions;
 import com.sooncode.jdbc.sql.condition.Sort;
+import com.sooncode.jdbc.sql.condition.sign.EqualSign;
 import com.sooncode.jdbc.util.Page;
  
 public class JdbcDao_Test {
@@ -32,10 +34,48 @@ public class JdbcDao_Test {
 		
 	}
 	@Test
+	public void saves(){
+		String json = "{\"teacher\":{\"createDate\":\"2016-10-26 14:15:22\",\"teacherName\":\"hechen6578\",\"clazzId\":\"001\"}}";
+		JsonBean  t = new JsonBean(json);
+		 
+		String json2 = "{\"teacher\":{\"createDate\":\"2016-10-26 14:15:23\",\"teacherName\":\"hechen2345\",\"clazzId\":\"001\"}}";
+		JsonBean  t2 = new JsonBean(json2);
+		
+		List<JsonBean> beans = new ArrayList<>();
+		beans.add(t);
+		beans.add(t2);
+		
+		boolean b = jdbcDao.saves(beans);
+		logger.info(b);
+		
+	}
+	@Test
+	public void saveOrUpdate(){
+		String json = "{\"teacher\":{\"teacherName\":\"ni mei de \"}}";
+		JsonBean  t = new JsonBean(json);
+		t.addField("teacherId", 11);
+		Long b = jdbcDao.saveOrUpdate(t);
+		logger.info(b);
+		
+	}
+	@Test
 	public void update(){
 		String json = "{\"teacher\":{\"teacherId\":345,\"teacherName\":\"和陈\",\"clazzId\":\"001\"}}";
 		JsonBean  t = new JsonBean(json);
 		Long b = jdbcDao.update(t);
+		logger.info(b);
+		
+	}
+	@Test
+	public void updates(){
+		String json1 = "{\"teacher\":{\"teacherId\":3,\"teacherName\":\"AA\"}}";
+		JsonBean  t1 = new JsonBean(json1);
+		String json2 = "{\"teacher\":{\"teacherId\":4,\"teacherName\":\"BB\"}}";
+		JsonBean  t2 = new JsonBean(json2);
+		List<JsonBean> list = new ArrayList<>();
+		list.add(t1);
+		list.add(t2);
+		boolean b = jdbcDao.updates(list);
 		logger.info(b);
 		
 	}
@@ -55,8 +95,9 @@ public class JdbcDao_Test {
 		String json = "{\"teacher\":{\"teacherName\":\"hechen\"}}";
 		JsonBean j = new JsonBean(json);
 		Conditions c = new Conditions(j);
+		c.setCondition("teacherName", EqualSign.NOT_EQ);
 		c.setOderBy("clazzId", Sort.ASC);
-		List<JsonBean> list = jdbcDao.get(c);
+		List<JsonBean> list = jdbcDao.gets(c);
 		logger.info(list);
 	}
 	
@@ -70,4 +111,6 @@ public class JdbcDao_Test {
 		Page page = jdbcDao.getPage(1L,1L,c);
 		logger.info(page.getList());
 	}
+	
+	
 }

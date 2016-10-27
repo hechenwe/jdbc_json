@@ -27,19 +27,7 @@ public class UserDao {
 	
 	
 	 
-	public List<User> getUserByAge(int age){
-		String sql = "SELECT * FROM USER WHERE AGE=?";
-		Map<Integer,Object> map = new HashMap<>();
-		map.put(1, age);
-		Parameter parameter = new Parameter();
-		parameter.setParams(map);
-		parameter.setReadySql(sql);
-		 
-		@SuppressWarnings("unchecked")
-		List<User> list =(List<User>) jdbc.executeQuerys(parameter, User.class);
-		
-		return list;
-	}
+	 
 	
 	 
 	public static void main(String[] args) {
