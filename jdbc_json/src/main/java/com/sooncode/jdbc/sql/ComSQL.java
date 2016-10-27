@@ -10,6 +10,7 @@ import com.sooncode.jdbc.constant.CLASS_NAME;
 import com.sooncode.jdbc.constant.DATE_FORMAT;
 import com.sooncode.jdbc.constant.SQL_KEY;
 import com.sooncode.jdbc.constant.STRING;
+ 
 import com.sooncode.jdbc.reflect.RObject;
 import com.sooncode.jdbc.util.T2E;
 
@@ -262,10 +263,10 @@ public class ComSQL {
 	 * @param object
 	 * @return 可执行SQL
 	 */
-	public static Parameter where(Object object) {
+	public static Parameter where(DbBean dbBean) {
 		Parameter p = new Parameter();
-		String tableName = T2E.toColumn(object.getClass().getSimpleName());
-		Map<String, Object> map = new RObject(object).getFiledAndValue();
+		String tableName = T2E.toColumn(dbBean.getBeanName());
+		Map<String, Object> map = dbBean.getFields();
 		String s = new String ();
 		Map<Integer,Object> paramets = new HashMap<>();
 		Integer index = 1;
@@ -336,16 +337,16 @@ public class ComSQL {
 	 * @param object
 	 * @return 可执行SQL
 	 */
-	public static Parameter O2OSize(Object left, Object... others) {
+	public static Parameter O2OSize(DbBean left, DbBean... others) {
 		 
-		String leftTable = T2E.toColumn(left.getClass().getSimpleName());
+		String leftTable = T2E.toColumn(left.getBeanName());
 		
 		Map<String, String> map = new HashMap<>();
 		for (int i = 0; i < others.length; i++) {
-			String simpleName = others[i].getClass().getSimpleName();
+			String simpleName = others[i].getBeanName();
 			String table = T2E.toColumn(simpleName);
-			RObject rObject = new RObject(others[i]);
-			String pk = T2E.toColumn(rObject.getPk());
+		 
+			String pk = T2E.toColumn(others[i].getPrimaryField());
 			map.put(table, pk);
 		}
 		
@@ -368,7 +369,7 @@ public class ComSQL {
 		Map<Integer,Object> paramets =leftP.getParams();
 		String leftWhere = leftWhereSql ;
 		
-		for (Object obj : others) {
+		for (DbBean obj : others) {
 			Parameter thisP = where(obj);
 			String thisWhereSql  = thisP.getReadySql();
 			Map<Integer,Object> thisParamets =thisP.getParams();
@@ -524,11 +525,11 @@ public class ComSQL {
 	 *            其他参照表对应的实体类 ,至少有一个实体类
 	 * @return 可执行SQL
 	 */
-	public static Parameter getO2O(Object left, Object... others) {
+	public static Parameter getO2O(DbBean left, DbBean... others) {
 		
-		String leftTable = T2E.toColumn(left.getClass().getSimpleName());
+		String leftTable = T2E.toColumn(left.getBeanName());
 		
-		Map<String, Object> leftFileds = new RObject(left).getFiledAndValue();//EntityCache.getKeyAndValue(left);
+		Map<String, Object> leftFileds = left.getFields();//EntityCache.getKeyAndValue(left);
 		String col = new String();
 		int n = 0;
 		for (Map.Entry<String, Object> en : leftFileds.entrySet()) {
@@ -541,13 +542,13 @@ public class ComSQL {
 		
 		Map<String, String> map = new HashMap<>();
 		
-		for (Object obj : others) {
+		for (DbBean db : others) {
 			
-			String table = T2E.toColumn(obj.getClass().getSimpleName());
-			RObject rObject = new RObject(obj);
-			String pk = T2E.toColumn(rObject.getPk());
+			String table = T2E.toColumn(db.getBeanName());
+			//RObject rObject = new RObject(obj);
+			String pk = T2E.toColumn(db.getPrimaryField());
 			map.put(table, pk);
-			Map<String, Object> field = new RObject(obj).getFiledAndValue();//EntityCache.getKeyAndValue(obj) ;
+			Map<String, Object> field = db.getFields();//EntityCache.getKeyAndValue(obj) ;
 			
 			for (Map.Entry<String, Object> en : field.entrySet()) {
 				col = col +STRING.COMMA  + table + STRING.POINT  + T2E.toColumn(en.getKey()) + SQL_KEY.AS  + table + STRING.UNDERLINE+ T2E.toColumn(en.getKey());
@@ -572,8 +573,8 @@ public class ComSQL {
 		Map<Integer,Object> paramets =leftP.getParams();
 		String leftWhere = leftWhereSql ;
 		
-		for (Object obj : others) {
-			Parameter thisP = where(obj);
+		for (DbBean db : others) {
+			Parameter thisP = where(db);
 			String thisWhereSql  = thisP.getReadySql();
 			Map<Integer,Object> thisParamets =thisP.getParams();
 			leftWhere = leftWhere + thisWhereSql;

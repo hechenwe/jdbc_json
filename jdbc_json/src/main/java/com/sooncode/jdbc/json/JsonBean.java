@@ -1,7 +1,8 @@
 package com.sooncode.jdbc.json;
 
+import java.util.ArrayList;
 import java.util.HashMap;
- 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -37,6 +38,24 @@ public class JsonBean {
 			map.put(key, value);
 		}
 	}
+	public void addField(JsonBean jsonBean) {
+		if (jsonBean != null ) {
+		    this.addField(jsonBean.getBeanName(), jsonBean.getFields());
+		}
+	}
+	
+	
+	public void addField( String key, List<JsonBean> jsonBeans) {
+		if (jsonBeans != null && jsonBeans.size()>0 ) {
+			List<Map<String,Object>> list = new ArrayList<>();
+			for (JsonBean j : jsonBeans) {
+				list.add(j.getFields());
+			}
+			this.addField(key, list);
+		}
+	}
+	
+	
 	public void addFields( Map<String, Object>  fields) {
 		
 		if(fields != null && fields.size() >0){

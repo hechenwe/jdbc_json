@@ -1,8 +1,14 @@
 package com.sooncode.jdbc.json;
 
  
+import java.awt.geom.Area;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.junit.Test;
+
+import com.mysql.jdbc.AbandonedConnectionCleanupThread;
 
 public class JsonBean__Test {
 	private static Logger logger = Logger.getLogger("JsonBean__Test.class");
@@ -13,6 +19,16 @@ public class JsonBean__Test {
     	jb.addField("name", "hechen");
     	jb.addField("address", "china");
     	jb.addField("age", 100);
+    	jb.addField("id",345);
+    	
+    	JsonBean id1 = new JsonBean("identity");
+    	id1.addField("identityId", 123);
+    	JsonBean id2 = new JsonBean("identity");
+    	id2.addField("identityName", "beijian");
+    	List<JsonBean> list = new ArrayList<>();
+    	list.add(id1);
+    	list.add(id2);
+    	//jb.addField("identities",list);
 		logger.info(jb.getJson());
 		
 	}

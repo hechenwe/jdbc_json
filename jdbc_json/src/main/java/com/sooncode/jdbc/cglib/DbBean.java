@@ -1,5 +1,6 @@
 package com.sooncode.jdbc.cglib;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -7,6 +8,7 @@ public class DbBean {
 	private String beanName;
 	private String primaryField;
 	private Object primaryFieldValue;
+	private List<ForeignKey> foreignKeies;
 	private Map<String, Object> fields;
 	
 	public String getBeanName() {
@@ -39,6 +41,14 @@ public class DbBean {
 
 	public void setPrimaryFieldValue(Object primaryFieldValue) {
 		this.primaryFieldValue = primaryFieldValue;
+	}
+
+	public List<ForeignKey> getForeignKeies() {
+		return foreignKeies;
+	}
+
+	public void setForeignKeies(List<ForeignKey> foreignKeies) {
+		this.foreignKeies = foreignKeies;
 	}
 
 }
