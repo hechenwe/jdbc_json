@@ -3,11 +3,15 @@ package com.sooncode.jdbc.reflect;
  
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
 import com.sooncode.jdbc.reflect.modle.Student;
+
+import example.entity.Teacher;
+import example.entity.Type;
  
 
 /**
@@ -47,6 +51,15 @@ public class RObject2_Test {
 	public void getPk(){
 		RObject r = new RObject(new Student());
 		logger.info(r.getPk());
+		
+	}
+	@Test
+	public void getSetInvoke(){
+		Teacher t = new Teacher();
+		t.setType(true);
+		RObject r = new RObject(t);
+		Map<String, Object> map = r. getFiledAndValue();
+		 logger.info(map);
 		
 	}
 	@Test
