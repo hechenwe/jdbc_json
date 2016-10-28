@@ -23,12 +23,20 @@ public class JdbcDao_Test {
 	
 	@Test
 	public void save(){
-	   String json = "{\"teacher\":{\"createDate\":\"2016-10-26 14:15:22\",\"teacherName\":\"hechen\",\"clazzId\":\"001\"}}";
+	   String json = "{\"teacher\":{\"createDate\":\"2016-10-26 14:15:22\",\"teacherName\":\"hechen\",\"clazzId\":\"001\",\"sex\":\"1\"}}";
 		JsonBean  t = new JsonBean(json);
 		t.updateField("createDate", new Date());
 		t.addField("teacherAge", 45);
 		t.addField("address", "beijing");
 		t.updateField("teacherName", "TOM");
+		Long b = jdbcDao.save(t);
+		logger.info(b);
+		
+	}
+	@Test
+	public void save2(){
+		String json = "{\"identity\":{\"id\":\"001\",}}";
+		JsonBean  t = new JsonBean(json);
 		Long b = jdbcDao.save(t);
 		logger.info(b);
 		
@@ -92,10 +100,10 @@ public class JdbcDao_Test {
 	 
 	@Test 
 	public void get(){
-		String json = "{\"teacher\":{\"teacherName\":\"hechen\"}}";
+		String json = "{\"teacher\":{\"teacherName\":\"TOM\"}}";
 		JsonBean j = new JsonBean(json);
 		Conditions c = new Conditions(j);
-		c.setCondition("teacherName", EqualSign.NOT_EQ);
+		//c.setCondition("teacherName", EqualSign.NOT_EQ);
 		c.setOderBy("clazzId", Sort.ASC);
 		List<JsonBean> list = jdbcDao.gets(c);
 		logger.info(list);

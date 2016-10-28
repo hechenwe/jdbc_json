@@ -19,12 +19,11 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 
+import com.sooncode.jdbc.cglib.ForeignKey;
+import com.sooncode.jdbc.cglib.Index;
 import com.sooncode.jdbc.constant.DATA;
 import com.sooncode.jdbc.constant.STRING;
 import com.sooncode.jdbc.util.T2E;
-import com.sooncode.jdbc.util.create_entity.Column;
-import com.sooncode.jdbc.util.create_entity.Jdbc2Java;
-import com.sooncode.jdbc.util.create_entity.PrimaryKey;
 
 /**
  * 数据库
@@ -180,6 +179,7 @@ public class DBs {
 
 		return connection;
 	}
+
 	/**
 	 * 查询数据库表的所有字段 构造 “字段属性模型”
 	 * 
@@ -188,14 +188,14 @@ public class DBs {
 	 * @return
 	 * @throws SQLException
 	 */
-	public static synchronized Map<String,Object> getFields(String dbKey,  String beanName) {
+	public static synchronized Map<String, Object> getFields(String dbKey, String beanName) {
 		String tableName = T2E.toTableName(beanName);
-		DB db = DBs.dBcache.get(dbKey); 
+		DB db = DBs.dBcache.get(dbKey);
 		String dataBaseName = db.getDataName();
 		try {
-			 
+
 			ResultSet columnSet = getConnection(dbKey).getMetaData().getColumns(dataBaseName, "%", tableName, "%");
-			Map<String,Object> map = new HashMap<>();
+			Map<String, Object> map = new HashMap<>();
 			while (columnSet.next()) { // 遍历某个表的字段
 				String columnName = columnSet.getString("COLUMN_NAME".toUpperCase());
 				map.put(T2E.toField(columnName), null);
@@ -206,31 +206,84 @@ public class DBs {
 		}
 
 	}
-	public static synchronized  String  getPrimaryField(String dbKey,  String beanName){
+
+	public static synchronized String getPrimaryField(String dbKey, String beanName) {
 		String tableName = T2E.toTableName(beanName);
-		DB db = DBs.dBcache.get(dbKey); 
+		DB db = DBs.dBcache.get(dbKey);
 		String dataBaseName = db.getDataName();
 		String primaryKeyName = null;
 		try {
-			ResultSet primaryKeyResultSet =  getConnection(dbKey).getMetaData().getPrimaryKeys(dataBaseName, null, tableName);
+			ResultSet primaryKeyResultSet = getConnection(dbKey).getMetaData().getPrimaryKeys(dataBaseName, null,
+					tableName);
 			while (primaryKeyResultSet.next()) { // 遍历某个表的主键
-			    primaryKeyName = primaryKeyResultSet.getString("COLUMN_NAME");
+				primaryKeyName = primaryKeyResultSet.getString("COLUMN_NAME");
 			}
-			 return T2E.toField(primaryKeyName.toUpperCase());
+			return T2E.toField(primaryKeyName.toUpperCase());
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return null;
 		}
-		
+
+	}
+
+	public static synchronized List<ForeignKey> getForeignKeies(String dbKey, String beanName) {
+		String tableName = T2E.toTableName(beanName);
+		DB db = DBs.dBcache.get(dbKey);
+		String dataBaseName = db.getDataName();
+		try {
+			ResultSet foreignKeyResultSet = getConnection(dbKey).getMetaData().getImportedKeys(dataBaseName, null,
+					tableName);
+			List<ForeignKey> list = new ArrayList<ForeignKey>();
+			while (foreignKeyResultSet.next()) {// 遍历某个表的外键
+
+				String fkColumnName = foreignKeyResultSet.getString("FKCOLUMN_NAME");
+				String pkTableName = foreignKeyResultSet.getString("PKTABLE_NAME").toUpperCase();
+				ForeignKey f = new ForeignKey();
+				f.setForeignProperty(T2E.toField(fkColumnName));
+				f.setReferDbBeanName(T2E.toClassName(pkTableName));
+				list.add(f);
+			}
+			return list;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ArrayList<ForeignKey>();
+		}
 	}
 	
-	
-	
+	public synchronized static List<Index> getIndex(String dbKey, String beanName)   {
+		String tableName = T2E.toTableName(beanName);
+		DB db = DBs.dBcache.get(dbKey);
+		String dataBaseName = db.getDataName();
+		List<Index> indexes = new ArrayList<Index>();
+		try {
+			ResultSet indexResultSet =  getConnection(dbKey).getMetaData().getIndexInfo(dataBaseName, null, tableName, true, true);
+			while (indexResultSet.next()) {// 遍历某个表的外键
+				Index index = new Index();
+				 
+				String columnName = indexResultSet.getString("COLUMN_NAME").toUpperCase();// 列名
+				boolean nonUnique = indexResultSet.getBoolean("NON_UNIQUE");// 非唯一索引
+			 
+			    index.setIndexPropertyName(T2E.toField(columnName));
+			    index.setUnique(!nonUnique);
+				indexes.add(index);
+				
+			}
+			return indexes;
+			
+		} catch (SQLException e) {
+			 
+			e.printStackTrace();
+			return new ArrayList<Index>();
+		}
+		
+	}
+
 	/**
 	 * 关闭连接资源
 	 * 
-	 * @param objs 含有colse()方法的对象集合
-	 *            
+	 * @param objs
+	 *            含有colse()方法的对象集合
+	 * 
 	 */
 	public static void close(Object... objs) {
 		if (objs != null && objs.length > 0) {
@@ -249,7 +302,7 @@ public class DBs {
 		}
 	}
 
-	public static void rollback(Connection connection ){
+	public static void rollback(Connection connection) {
 		try {
 			connection.rollback();
 		} catch (SQLException e) {
@@ -257,8 +310,7 @@ public class DBs {
 			e.printStackTrace();
 		}
 	}
-	
-	
+
 	/**
 	 * 扫描数据库配置文件
 	 * 
@@ -306,18 +358,22 @@ public class DBs {
 	}
 
 	/**
-	 * 设置事务隔离级别 * 设置事务隔离级别：</br> Connection.TRANSACTION_NONE （0）
-	 * :指示事务不受支持的常量。(注意，不能使用 ，因为它指定了不受支持的事务。) （不支持事务）
-	 * </br>Connection.TRANSACTION_READ_UNCOMMITTED （1） :指示可以发生脏读 (dirty
-	 * read)、不可重复读和虚读 (phantom read) 的常量。</br> Connection.TRANSACTION_READ_COMMITTED
-	 * （2）:指示不可以发生脏读的常量；不可重复读和虚读可以发生。 </br>Connection.TRANSACTION_REPEATABLE_READ （4）
-	 * :指示不可以发生脏读和不可重复读的常量；虚读可以发生。 (JDBC 默认值)
-	 * </br>Connection.TRANSACTION_SERIALIZABLE （8）: 指示不可以发生脏读、不可重复读和虚读的常量。
+	 * 设置事务隔离级别 * 设置事务隔离级别：</br>
+	 * Connection.TRANSACTION_NONE （0） :指示事务不受支持的常量。(注意，不能使用 ，因为它指定了不受支持的事务。)
+	 * （不支持事务） </br>
+	 * Connection.TRANSACTION_READ_UNCOMMITTED （1） :指示可以发生脏读 (dirty
+	 * read)、不可重复读和虚读 (phantom read) 的常量。</br>
+	 * Connection.TRANSACTION_READ_COMMITTED （2）:指示不可以发生脏读的常量；不可重复读和虚读可以发生。
+	 * </br>
+	 * Connection.TRANSACTION_REPEATABLE_READ （4） :指示不可以发生脏读和不可重复读的常量；虚读可以发生。
+	 * (JDBC 默认值) </br>
+	 * Connection.TRANSACTION_SERIALIZABLE （8）: 指示不可以发生脏读、不可重复读和虚读的常量。
+	 * 
 	 * @param dbKey
 	 * @param connection
 	 */
 	private static void setTransactionIsolation(String dbKey, Connection connection) {
-		 
+
 		try {
 			String ransactionIsolation = dBcache.get(dbKey).getTransactionIsolation();
 			if (ransactionIsolation != null) {

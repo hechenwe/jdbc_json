@@ -17,6 +17,7 @@ import com.sooncode.jdbc.constant.SQL_KEY;
 import com.sooncode.jdbc.json.JsonBean;
 import com.sooncode.jdbc.sql.ComSQL;
 import com.sooncode.jdbc.sql.Parameter;
+import com.sooncode.jdbc.sql.SelectEngine;
 import com.sooncode.jdbc.sql.condition.Conditions;
 import com.sooncode.jdbc.util.Page;
 import com.sooncode.jdbc.util.T2E;
@@ -166,25 +167,16 @@ public class JdbcDao {
 	 * @param others
 	 * @return
 	 */
-	private long getSize(Conditions left, Conditions... others) {
+	private long getSize(Conditions leftCond, Conditions... otherConds) {
 
-		DbBean leftBean = DbBeanCache.getDbBean(dbKey, left.getJsonBean());
+		SelectEngine se = new SelectEngine(this.dbKey);
 
-		Parameter p = new Parameter();
-
-		if (others.length == 0) { // 单表
-
-			p = ComSQL.selectSize(leftBean);
+		if (otherConds.length == 0) { // 单表
+			return se.getMainSize(leftCond);
+			 
 		}
-
-	 
-		Map<String, Object> map = jdbc.get(p);
-		Object obj = map.get(SQL_KEY.SIZE);
-		if (obj == null) {
-			return 0L;
-		} else {
-			return (long) obj;
-		}
+      return 0;
+	  
 	}
 
 	 

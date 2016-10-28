@@ -6,17 +6,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-
-
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 public class SJson {
-	
-	
-	
-	private static final String DATE_FORMAT =  "yyyy-MM-dd H:m:s" ;
+
+	private static final String DATE_FORMAT = "yyyy-MM-dd H:m:s";
 	/**
 	 * json 格式的字符串
 	 */
@@ -29,26 +24,47 @@ public class SJson {
 	 * JSONArray 数组
 	 */
 	private JSONArray jArray;
+	
+	private boolean isJson = true;
 
+	public SJson() {
+		this.jObj = new JSONObject();
+	}
+    
 	/**
 	 * SJson 构造器
 	 * 
 	 * @param jsonString
 	 *            json格式字符串
 	 */
+
 	public SJson(String jsonString) {
-		if (isJson(jsonString)) {
-			this.json = jsonString;
 
-			if (isJsonArray(jsonString)) {// json数组
-
-				JSONArray ja = JSONArray.fromObject(jsonString);
-				this.jArray = ja;
+		if (isJsonArray(jsonString)) {// json数组
+			JSONArray ja = JSONArray.fromObject(jsonString);
+			JSONArray jArray = new JSONArray();
+			if (ja != null && ja.size() > 0) {
+				for (int i = 0; i < ja.size(); i++) {
+					JSONObject j = ja.getJSONObject(i);
+					@SuppressWarnings("unchecked")
+					Map<String, Object> map = j;
+					JSONObject jObj = getJSONObject(map);
+					jArray.add(jObj);
+				}
 			}
-
-			JSONObject jb = JSONObject.fromObject(jsonString);
-			this.jObj = jb;
-
+			this.jArray = jArray;
+			this.json = jArray.toString();
+		} else if (isJson(jsonString)) {
+			{
+				JSONObject jb = JSONObject.fromObject(jsonString);
+				@SuppressWarnings("unchecked")
+				Map<String, Object> map = jb;
+				JSONObject jObj = getJSONObject(map);
+				this.jObj = jObj;
+				this.json = jObj.toString();
+			}
+		}else{
+			this.isJson = false;
 		}
 
 	}
@@ -84,15 +100,13 @@ public class SJson {
 
 	}
 
-	/**
-	 * 获取json格式的字符串
-	 * 
-	 * @return
-	 */
-	public String getJsonString() {
-		return this.json;
+	
+	public boolean isJson(){
+		return this.isJson;
 	}
-
+	
+	
+	
 	/**
 	 * 获取Map
 	 * 
@@ -194,11 +208,13 @@ public class SJson {
 	 * @param key
 	 *            字段，对象，数组名称
 	 */
-	public void removeFields(String key) {
+	public Object removeFields(String key) {
 		if (key != null && !key.trim().equals("")) {
 			Object r = this.jObj.remove(key);
 			this.json = this.jObj.toString();
+			return r;
 		}
+		return null;
 	}
 
 	/**
@@ -213,15 +229,74 @@ public class SJson {
 		return obj;
 	}
 
-	public String getTableName() {
-		Map<String, Object> map = this.getMap();
-		String key = null;
-		if (map.size() == 1) {
+	/**
+	 * 字符串是否是Json格式
+	 * 
+	 * @param json
+	 * @return
+	 */
+	public static boolean isJson(String json) {
+		if (json == null || json.trim().equals("")) {
+			return false;
+		}
+		try {
+			JSONObject.fromObject(json);
+			return true;
+		} catch (Exception e) {
+
+			return false;
+		}
+
+	}
+
+	/**
+	 * 字符串是否是Json数组
+	 * 
+	 * @param json
+	 * @return
+	 */
+	public static boolean isJsonArray(String json) {
+		if (json == null || json.trim().equals("")) {
+			return false;
+		}
+		try {
+			JSONArray.fromObject(json);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+
+	}
+
+	/**
+	 * Map 转换成 JSONObject
+	 * 
+	 * @param map
+	 * @return
+	 */
+	private JSONObject getJSONObject(Map<String, Object> map) {
+		JSONObject jObj = new JSONObject();
+		if (map != null && map.size() > 0) {
 			for (Entry<String, Object> en : map.entrySet()) {
-				key = en.getKey();
+				String key = en.getKey();
+				Object val = en.getValue();
+				if (isJson(val.toString())) {
+					@SuppressWarnings("unchecked")
+					Map<String, Object> nextMap = JSONObject.fromObject(val.toString());
+					JSONObject jVal = getJSONObject(nextMap);
+					jObj.accumulate(key, jVal);
+				} else {
+					if (val instanceof Date) {
+						String str = new SimpleDateFormat(DATE_FORMAT).format(val);
+						jObj.accumulate(key, str);
+					} else {
+						jObj.accumulate(key, val);
+					}
+				}
 			}
 		}
-		return key;
+		return jObj;
+
 	}
 
 	/**
@@ -232,7 +307,7 @@ public class SJson {
 	 *            字段名称 如："nb.phots[0].url" , "name" 等
 	 * @return
 	 */
-	private Object getValue(String jsonString, String key) {
+	private Object remove(String jsonString, String key) {
 
 		if (jsonString == null) {
 			return null;
@@ -301,78 +376,94 @@ public class SJson {
 			}
 		}
 	}
-
 	/**
-	 * 字符串是否是Json格式
 	 * 
-	 * @param json
+	 * @param jsonString
+	 *            避免key中有class关键字
+	 * @param key
+	 *            字段名称 如："nb.phots[0].url" , "name" 等
 	 * @return
 	 */
-	public static boolean isJson(String json) {
-		if (json == null || json.trim().equals("")) {
-			return false;
+	private Object getValue(String jsonString, String key) {
+		
+		if (jsonString == null) {
+			return null;
 		}
+		
+		String[] keys = key.split("\\.");
+		JSONObject jsonRoot = null;
 		try {
-			JSONObject.fromObject(json);
-			return true;
+			jsonRoot = JSONObject.fromObject(jsonString);
+			
 		} catch (Exception e) {
-
-			return false;
+			return null;
 		}
-
-	}
-
-	/**
-	 * 字符串是否是Json数组
-	 * 
-	 * @param json
-	 * @return
-	 */
-	public static boolean isJsonArray(String json) {
-		if (json == null || json.trim().equals("")) {
-			return false;
-		}
-		try {
-			JSONArray.fromObject(json);
-			return true;
-		} catch (Exception e) {
-			return false;
-		}
-
-	}
-
-	/**
-	 * Map 转换成 JSONObject
-	 * 
-	 * @param map
-	 * @return
-	 */
-	private JSONObject getJSONObject(Map<String, Object> map) {
-		JSONObject jObj = new JSONObject();
-		if (map != null && map.size() > 0) {
-			for (Entry<String, Object> en : map.entrySet()) {
-				String key = en.getKey();
-				Object val = en.getValue();
-				if (isJson(val.toString())) {
-					@SuppressWarnings("unchecked")
-					Map<String, Object> nextMap = JSONObject.fromObject(val.toString());
-					JSONObject jVal = getJSONObject(nextMap);
-					jObj.accumulate(key, jVal);
+		if (keys.length == 1) {
+			if (!keys[0].contains("[") && !keys[0].contains("]")) {
+				Object obj = jsonRoot.get(keys[0]);
+				return obj == null ? null : obj;
+			} else {
+				int start = keys[0].indexOf("[");
+				int end = keys[0].indexOf("]");
+				String number = keys[0].substring(start + 1, end);
+				int num = Integer.valueOf(number);
+				String thisKey = keys[0];
+				thisKey = thisKey.replace("[" + num + "]", "");
+				JSONArray jsonArray = JSONArray.fromObject(jsonRoot.get(thisKey));
+				if (num < jsonArray.size()) {
+					JSONObject obj = (JSONObject) jsonArray.get(num);
+					return obj;
+				}
+				return null;
+			}
+		} else {
+			
+			String newKeys = new String();
+			for (int i = 1; i < keys.length; i++) {
+				if (i == 1) {
+					newKeys = keys[i];
 				} else {
-					if(val instanceof Date){
-						String str = new SimpleDateFormat(DATE_FORMAT).format(val);
-						jObj.accumulate(key, str);
-					}else{
-						jObj.accumulate(key, val);
-					}
+					newKeys = newKeys + "." + keys[i];
+				}
+			}
+			// -----------------------------------
+			String thisKey = keys[0];
+			
+			if (thisKey.contains("[") && thisKey.contains("]")) {
+				int start = thisKey.indexOf("[");
+				int end = thisKey.indexOf("]");
+				String number = thisKey.substring(start + 1, end);
+				int num = Integer.valueOf(number);
+				thisKey = thisKey.replace("[" + num + "]", "");
+				JSONArray jsonArray = JSONArray.fromObject(jsonRoot.get(thisKey));
+				if (num < jsonArray.size()) {
+					JSONObject obj = (JSONObject) jsonArray.get(num);
+					return this.getValue(obj.toString(), newKeys);
+				} else {
+					return null;
+				}
+			} else {
+				Object obj = jsonRoot.get(keys[0]);
+				if (obj == null) {
+					return null;
+				} else {
+					String value = obj.toString();
+					return this.getValue(value, newKeys);
 				}
 			}
 		}
-		return jObj;
-
 	}
-	
-	public String toString(){
+
+	/**
+	 * 获取json格式的字符串
+	 * 
+	 * @return
+	 */
+	public String getJsonString() {
+		return this.json;
+	}
+
+	public String toString() {
 		return this.getJsonString();
 	}
 }

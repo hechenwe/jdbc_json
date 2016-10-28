@@ -15,8 +15,8 @@ public class ForeignKey {
 	 */
 	private String foreignProperty;
 	
-	/**外键索引类型 */
-	private String indexingType; 
+	/**外键是否是唯一索引 */
+	private boolean isUnique;
 	
 	/**
 	 * 参照表名称
@@ -31,12 +31,14 @@ public class ForeignKey {
 		this.foreignProperty = foreignProperty;
 	}
 
-	public String getIndexingType() {
-		return indexingType;
+	 
+
+	public boolean isUnique() {
+		return isUnique;
 	}
 
-	public void setIndexingType(String indexingType) {
-		this.indexingType = indexingType;
+	public void setUnique(boolean isUnique) {
+		this.isUnique = isUnique;
 	}
 
 	public String getReferDbBeanName() {

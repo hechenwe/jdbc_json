@@ -15,7 +15,7 @@ public class SJson__Test {
     	List<Map<String,Object>> list = new ArrayList<>();
     	
     	Map<String,Object> map = new HashMap<>();
-    	map.put("id", 1);
+    	map.put("class1", 1);
     	map.put("name", "hechen");
     	map.put("age", 18);
     	map.put("clas", "{\"id\":1,\"className\":\"gao yi ban\",\"room\":\"{\\\"id\\\":234}\"}");
@@ -29,19 +29,19 @@ public class SJson__Test {
     	
     	list.add(map);
     	list.add(map1);
-		SJson sj = new SJson(list);
+		SJson sj = new SJson(map);
 		//logger.info(sj.getJsonString());
 		
-		String json = "{\"id\":1,\"className\":\"gao yi ban\"}";
+		String json = "[{\"id\":1,\"className\":\"gao yi ban\",\"room\":\"{\\\"id\\\":234}\"},{\"id\":2,\"className\":\"gao yi ban\",\"room\":\"{\\\"id\\\":234}\"}]";
 		
-		SJson sj2 = new SJson(json);
-		sj2.addFields("name", "hechen");
-		sj2.addObject("nb", map);
+		//SJson sj2 = new SJson(sj);
+		//sj2.addFields("name", "hechen");
+		//sj2.addObject("nb", map);
 		//sj2.removeFields("name");
 		//sj2.updateFields("name", "Tom");
-		logger.info(sj2.getJsonString());
+		logger.info(sj.getFields("class1"));
 		//logger.info(sj2.getFields("nb"));
-		logger.info(sj2.getFields("nb.phots[1].url"));
+		//logger.info(sj2.getFields("nb.phots[1].url"));
 		
 	}
 }
