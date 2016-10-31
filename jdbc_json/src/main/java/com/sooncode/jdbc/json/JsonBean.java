@@ -26,7 +26,7 @@ public class JsonBean {
 					this.beanName = beanName;
 					SJson newSj = new SJson(sj.getFields(beanName).toString());
 					for (Entry<String, Object> e : newSj.getMap().entrySet()) {
-						this.addField(beanName+STRING.POINT+e.getKey(), e.getValue());
+						this.addField(e.getKey(), e.getValue());
 					}
 				}
 			}

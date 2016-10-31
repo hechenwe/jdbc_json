@@ -22,6 +22,7 @@ import com.sooncode.jdbc.util.T2E;
 public class Conditions {
 
 	private JsonBean leftBean;
+	private JsonBean[] otherBeans;
 	private Map<String, Condition> ces;
 
 	/**
@@ -34,16 +35,30 @@ public class Conditions {
 		
 		
 		this.leftBean = leftBean;
+		this.otherBeans = otherBeans;
 		Map<String, Object> map = leftBean.getFields();
+		Map<String, Object> newMap = leftBean.getFields();
+		
+		for(Entry<String, Object> en : map.entrySet()){
+			String key = en.getKey();
+			Object value = en.getValue();
+			newMap.put(leftBean.getBeanName()+ STRING.POINT+key, value);
+		}
+		
 		if( otherBeans!=null  &&  otherBeans.length >0 ){
 			for (JsonBean bean : otherBeans) {
-				map.putAll(bean.getFields());
+				Map<String, Object> otherMap = bean.getFields();
+				 for(Entry<String,Object> en:otherMap.entrySet()){
+					 String key = en.getKey();
+					 Object val = en.getValue();
+					 newMap.put(bean.getBeanName()+STRING.POINT+key, val);
+				 }
 			}
 		}
 		
 		
 		Map<String, Condition> list = new HashMap<>();
-		for (Entry<String, Object> en : map.entrySet()) {
+		for (Entry<String, Object> en : newMap.entrySet()) {
 			String key = en.getKey();
 			Object val = en.getValue();
 			Condition c = new Condition(key, val, null);
@@ -273,8 +288,14 @@ public class Conditions {
 		return p;
 	}
 
-	public JsonBean getJsonBean() {
-		return this.leftBean;
+	public JsonBean getLeftBean() {
+		return leftBean;
 	}
+
+	public JsonBean[] getOtherBeans() {
+		return otherBeans;
+	}
+
+	 
 
 }

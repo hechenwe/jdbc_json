@@ -15,7 +15,7 @@ public class SJson__Test {
     	List<Map<String,Object>> list = new ArrayList<>();
     	
     	Map<String,Object> map = new HashMap<>();
-    	map.put("class1", 1);
+    	map.put("class", 1);
     	map.put("name", "hechen");
     	map.put("age", 18);
     	map.put("clas", "{\"id\":1,\"className\":\"gao yi ban\",\"room\":\"{\\\"id\\\":234}\"}");
@@ -39,7 +39,8 @@ public class SJson__Test {
 		//sj2.addObject("nb", map);
 		//sj2.removeFields("name");
 		//sj2.updateFields("name", "Tom");
-		logger.info(sj.getFields("class1"));
+		logger.info(sj.toString());
+		logger.info(sj.getFields("phots[0].id"));
 		//logger.info(sj2.getFields("nb"));
 		//logger.info(sj2.getFields("nb.phots[1].url"));
 		
