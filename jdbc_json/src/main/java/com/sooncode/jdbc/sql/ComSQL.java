@@ -230,7 +230,31 @@ public class ComSQL {
 			if (m != 0) {
 				c = c + SQL_KEY.COMMA;
 			}
-			c = c +tableName + STRING.POINT+ columnName + SQL_KEY.AS+tableName + STRING.UNDERLINE+ columnName;
+			c = c +tableName + STRING.POINT+ columnName + SQL_KEY.AS+tableName + STRING.DOLLAR+ columnName;
+			m++;
+		}
+		return c;
+	}
+	
+	
+	/**
+	 * 获取字段
+	 * @param obj
+	 * @return
+	 */
+	public static String columns4One (DbBean bean){
+		//String tableName = T2E.toTableName( bean.getBeanName() ) ;
+		
+		Map<String, Object> columns = bean.getFields();
+		int m = 0;
+		String c = new String();
+		for (Entry<String, Object> en : columns.entrySet()) {
+			String columnName = T2E.toColumn(en.getKey());
+			
+			if (m != 0) {
+				c = c + SQL_KEY.COMMA;
+			}
+			c = c + columnName ;
 			m++;
 		}
 		return c;

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 
@@ -13,7 +15,7 @@ import com.sooncode.jdbc.cglib.DbBean;
 import com.sooncode.jdbc.cglib.DbBeanCache;
 import com.sooncode.jdbc.constant.DATA;
 import com.sooncode.jdbc.constant.SQL_KEY;
-
+import com.sooncode.jdbc.constant.STRING;
 import com.sooncode.jdbc.json.JsonBean;
 import com.sooncode.jdbc.sql.ComSQL;
 import com.sooncode.jdbc.sql.Parameter;
@@ -169,7 +171,7 @@ public class JdbcDao {
 	 */
 	private long getSize(Conditions leftCond, Conditions... otherConds) {
 
-		SelectEngine se = new SelectEngine(this.dbKey);
+		SelectEngine se = new SelectEngine(dbKey);
 
 		if (otherConds.length == 0) { // 单表
 			return se.getMainSize(leftCond);
@@ -183,12 +185,11 @@ public class JdbcDao {
 	public List<JsonBean> gets(Conditions conditions) {
 
 		DbBean cb = DbBeanCache.getDbBean(dbKey, conditions.getJsonBean());
-		String columns = ComSQL.columns(cb);
+		String columns = ComSQL.columns4One(cb);
 		Parameter where = conditions.getWhereSql();
 		Parameter p = new Parameter();
 		String tableName = T2E.toTableName(cb.getBeanName());
-		String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM + tableName + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE
-				+ where.getReadySql();
+		String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM + tableName + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE+ where.getReadySql();
 		p.setReadySql(sql);
 		p.setParams(where.getParams());
 		List<Map<String, Object>> list = jdbc.gets(p);

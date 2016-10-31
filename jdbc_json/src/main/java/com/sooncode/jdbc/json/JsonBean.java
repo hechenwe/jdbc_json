@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.sooncode.jdbc.constant.STRING;
+
 public class JsonBean {
 	private String beanName;
 
@@ -24,7 +26,7 @@ public class JsonBean {
 					this.beanName = beanName;
 					SJson newSj = new SJson(sj.getFields(beanName).toString());
 					for (Entry<String, Object> e : newSj.getMap().entrySet()) {
-						this.addField(e.getKey(), e.getValue());
+						this.addField(beanName+STRING.POINT+e.getKey(), e.getValue());
 					}
 				}
 			}

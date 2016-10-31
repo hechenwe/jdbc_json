@@ -17,10 +17,11 @@ import com.sooncode.jdbc.sql.condition.Conditions;
  */
 public class SelectEngine {
 	private String dbKey;
-	private Jdbc jdbc = JdbcFactory.getJdbc(this.dbKey);
+	private Jdbc jdbc ;
 
 	public SelectEngine(String dbKey) {
 		this.dbKey = dbKey;
+		this.jdbc  = JdbcFactory.getJdbc(this.dbKey);
 	}
 
 	public long getMainSize(Conditions leftCond) {

@@ -8,8 +8,7 @@ import java.util.Map.Entry;
 import com.sooncode.jdbc.constant.SQL_KEY;
 import com.sooncode.jdbc.constant.STRING;
 import com.sooncode.jdbc.json.JsonBean;
-import com.sooncode.jdbc.json.SJson;
-import com.sooncode.jdbc.reflect.RObject;
+ 
 import com.sooncode.jdbc.sql.Parameter;
 import com.sooncode.jdbc.sql.condition.sign.Sign;
 import com.sooncode.jdbc.util.T2E;
@@ -22,7 +21,7 @@ import com.sooncode.jdbc.util.T2E;
  */
 public class Conditions {
 
-	private JsonBean bean;
+	private JsonBean leftBean;
 	private Map<String, Condition> ces;
 
 	/**
@@ -30,9 +29,19 @@ public class Conditions {
 	 */
 	private String oderByes = new String();
 
-	public Conditions(JsonBean bean) {
-		this.bean = bean;
-		Map<String, Object> map = bean.getFields();
+	public Conditions(JsonBean leftBean, JsonBean... otherBeans) {
+		
+		
+		
+		this.leftBean = leftBean;
+		Map<String, Object> map = leftBean.getFields();
+		if( otherBeans!=null  &&  otherBeans.length >0 ){
+			for (JsonBean bean : otherBeans) {
+				map.putAll(bean.getFields());
+			}
+		}
+		
+		
 		Map<String, Condition> list = new HashMap<>();
 		for (Entry<String, Object> en : map.entrySet()) {
 			String key = en.getKey();
@@ -265,7 +274,7 @@ public class Conditions {
 	}
 
 	public JsonBean getJsonBean() {
-		return this.bean;
+		return this.leftBean;
 	}
 
 }

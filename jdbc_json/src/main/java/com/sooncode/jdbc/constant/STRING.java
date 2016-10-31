@@ -93,4 +93,9 @@ public static final String NULL_STR = "";
  * 转义  "\\."
  */
 public static final String ESCAPE_POINT="\\.";
+
+/**
+ * 转义  "\\$"
+ */
+public static final String ESCAPE_DOLLAR="\\$";
 }
