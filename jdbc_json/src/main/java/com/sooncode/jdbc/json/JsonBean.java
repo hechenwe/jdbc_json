@@ -13,6 +13,10 @@ public class JsonBean {
 
 	private Map<String, Object> map = new HashMap<>();
 
+	public JsonBean(){
+		
+	}
+	
 	public JsonBean(String string) {
 
 		boolean b = SJson.isJson(string);
@@ -101,10 +105,16 @@ public class JsonBean {
 
 	public String getJson() {
 		SJson sBean = new SJson(map);
+		String jsonString = new String();
+		if(this.beanName!=null){
 		Map<String, Object> newMap = new HashMap<>();
 		newMap.put(beanName, sBean.getJsonString());
-		String str = new SJson(newMap).getJsonString();
-		return str;
+		jsonString = new SJson(newMap).getJsonString();
+		
+		}else{
+			jsonString = sBean.getJsonString();
+		}
+		return jsonString;
 	}
     
 	public String getBeanName() {

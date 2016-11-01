@@ -91,7 +91,7 @@ public class JdbcDao {
 		} else if (n == 2) {// 1对1
 	 
 			List<Map<String, Object>> list = one2Many(leftDbBean, otherDbBeans, conditions);
-			List<JsonBean> jsonBean = findJsonBean(list, n, conditions);
+			List<JsonBean> jsonBean = findJsonBean(list, n,leftDbBean, otherDbBeans, conditions);
 			Long size = getSize(conditions);
 			Page pager = new Page(pageNum, pageSize, size, jsonBean);
 			return pager;
@@ -99,7 +99,7 @@ public class JdbcDao {
 		}else if(n == 3){ //一对多
 	 
 			List<Map<String, Object>> list = one2Many(leftDbBean, otherDbBeans, conditions);
-			List<JsonBean> jsonBean = findJsonBean(list, n, conditions);
+			List<JsonBean> jsonBean = findJsonBean(list, n,leftDbBean, otherDbBeans, conditions);
 			Long size = getSize(conditions);
 			Page pager = new Page(pageNum, pageSize, size, jsonBean);
 			return pager;
@@ -146,44 +146,61 @@ public class JdbcDao {
 	}
 	
 	
-	private List<JsonBean> findJsonBean(List<Map<String, Object>> list, int relation, Conditions conditions) {
+	private List<JsonBean> findJsonBean(List<Map<String, Object>> list, int relation, DbBean leftDbBean ,List<DbBean> otherDbBeans ,Conditions conditions) {
 
-		String leftBeanName = conditions.getLeftBean().getBeanName();
-		List<JsonBean> otherBeans = Arrays.asList(conditions.getOtherBeans());
-		Map<String,JsonBean> otherMap = new TreeMap<>();
-		for (JsonBean jsonBean : otherBeans) {
-			otherMap.put(jsonBean.getBeanName(), jsonBean);
+		String leftBeanName = leftDbBean.getBeanName();
+		 
+		Map<String,List<JsonBean>> otherMap = new TreeMap<>();
+		for (DbBean jsonBean : otherDbBeans) {
+			otherMap.put(jsonBean.getBeanName(), new ArrayList<JsonBean>());
 		}
 
-		List<JsonBean> jBeans = new ArrayList<>();
- 
+		List<JsonBean> allBeans = new ArrayList<>();
+		Map<Object, JsonBean > leftBeans = new TreeMap <>();
+  
+		
 		for (Map<String, Object> map : list) {
-			JsonBean jsonBean = new JsonBean(leftBeanName);
+			JsonBean allBean = new JsonBean();
+			JsonBean leftBean = new JsonBean(leftBeanName);
+			Map<String, JsonBean > otherM   = new TreeMap<>();
+			for (DbBean bean : otherDbBeans) {
+				otherM.put(bean.getBeanName(), new JsonBean(bean.getBeanName()));
+			}
+			
 			for (Entry<String, Object> en : map.entrySet()) {
 				String key = en.getKey();
 				Object val = en.getValue();
-				if (relation == 2) { // 一对一
 					String[] strs = key.split(STRING.ESCAPE_DOLLAR);
 					if (strs.length > 0) {
+						String beanName = strs[0];
 						String pr = strs[1];
-						jsonBean.addField(pr, val);
-					}
-				} else if(relation == 3){ //一对多
-					if (key.indexOf(leftBeanName + STRING.DOLLAR) != -1) {
-						String[] strs = key.split(STRING.ESCAPE_DOLLAR);
-						if (strs.length > 0) {
-							String pr = strs[1];
-							jsonBean.addField(pr, val);
+						allBean.addField(pr, val);
+						if(beanName.toUpperCase().equals(leftBeanName.toUpperCase())){
+							leftBean.addField(pr, val);
+						}
+						if(otherM.get(beanName)!=null){
+						otherM.get(beanName).addField(pr, val);
 						}
 					}
-
-				}
-
 			}
-			jBeans.add(jsonBean);
+			for (DbBean bean : otherDbBeans) {
+				otherMap.get(bean.getBeanName()).add(otherM.get(bean.getBeanName()));
+			}
+			
+			allBeans.add(allBean);
+			leftBeans.put(leftBean,leftBean);
 		}
 
-		return jBeans;
+		if(relation==2){ //one to one 
+			return allBeans;
+		}else if(relation == 3){// one to many
+		
+			return null;
+		}
+		
+		
+		return null;
+		 
 	}
 
 	public long save(JsonBean jsonBean) {

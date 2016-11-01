@@ -32,4 +32,15 @@ public class JsonBean__Test {
 		logger.info(jb.getJson());
 		
 	}
+    
+    @Test
+  	public void JsonBean(){
+    	
+    	JsonBean jb = new JsonBean();
+    	jb.addField("id",1);
+    	jb.addField("name","hechen");
+    	
+    	logger.info(jb.getJson());
+    	
+    }
 }
