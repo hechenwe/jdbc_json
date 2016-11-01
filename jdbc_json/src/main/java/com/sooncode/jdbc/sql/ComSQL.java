@@ -2,6 +2,7 @@ package com.sooncode.jdbc.sql;
 
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -266,7 +267,7 @@ public class ComSQL {
 	 * @param obj
 	 * @return
 	 */
-	public static String columns (DbBean...beans){
+	public static String columns (List<DbBean> beans){
 		 String sql = new String ();
 		 int i = 0;
 		 for (DbBean b : beans) {

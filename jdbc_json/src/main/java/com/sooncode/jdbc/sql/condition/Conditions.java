@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import com.sooncode.jdbc.constant.SQL_KEY;
 import com.sooncode.jdbc.constant.STRING;
@@ -37,7 +38,7 @@ public class Conditions {
 		this.leftBean = leftBean;
 		this.otherBeans = otherBeans;
 		Map<String, Object> map = leftBean.getFields();
-		Map<String, Object> newMap = leftBean.getFields();
+		Map<String, Object> newMap = new TreeMap<>();
 		
 		for(Entry<String, Object> en : map.entrySet()){
 			String key = en.getKey();
@@ -205,8 +206,16 @@ public class Conditions {
 	 * @return
 	 */
 	public Conditions setOderBy(String key, Sort sort) {
-
-		key = T2E.toColumn(key);
+	 
+		String[] keys = key.split(STRING.ESCAPE_POINT);
+		String con = new String ();
+		if(keys.length==2){
+			  con = T2E.toColumn(keys[0])+STRING.POINT + T2E.toColumn(keys[1]);
+		}else{
+			
+			  con = T2E.toColumn(keys[0]);
+		}
+		key = con;
 		if (key == null || key.equals("")) {
 			return this;
 		} else {
@@ -227,7 +236,7 @@ public class Conditions {
 	 * 
 	 * @return
 	 */
-	public Parameter getWhereSql() {
+	public Parameter getWhereParameter() {
 
 		Parameter p = new Parameter();
 		Map<Integer, Object> para = new HashMap<>();
@@ -235,7 +244,15 @@ public class Conditions {
 		int index = 1;
 		for (Entry<String, Condition> en : this.ces.entrySet()) {
 			Condition c = en.getValue();
-			String con = T2E.toColumn(c.getKey());
+			String key = c.getKey();
+			String[] keys = key.split(STRING.ESCAPE_POINT);
+			String con = new String ();
+			if(keys.length==2){
+				  con = T2E.toColumn(keys[0])+STRING.POINT + T2E.toColumn(keys[1]);
+			}else{
+				
+				  con = T2E.toColumn(keys[0]);
+			}
 			if (c.getType().equals("1")) {
 				if (c.getVal() != null || c.getVales() != null) {
 					String sign = c.getConditionSign();

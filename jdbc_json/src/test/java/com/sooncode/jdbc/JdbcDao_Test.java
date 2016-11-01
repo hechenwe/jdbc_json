@@ -111,11 +111,33 @@ public class JdbcDao_Test {
 	
 	
 	@Test 
-	public void getPage(){
+	public void getPage1(){  //单表 
 		String json = "{\"teacher\":{\"teacherName\":\"TOM\"}}";
 		JsonBean j = new JsonBean(json);
 		Conditions c = new Conditions(j);
-		c.setOderBy("clazzId", Sort.ASC);
+		c.setOderBy("teacher.clazzId", Sort.ASC);
+		Page page = jdbcDao.getPage(1L,1L,c);
+		logger.info(page.getList());
+	}
+	
+	
+	@Test 
+	public void getPage2(){  //1对1
+		 
+		JsonBean student = new JsonBean("student");
+		JsonBean identity = new JsonBean("identity");
+		Conditions c = new Conditions(student,identity);
+	//	c.setOderBy("teacher.clazzId", Sort.ASC);
+		Page page = jdbcDao.getPage(1L,1L,c);
+		logger.info(page.getList());
+	}
+	@Test 
+	public void getPage3(){  //1对多
+		
+		JsonBean clazz = new JsonBean("clazz");
+		JsonBean student = new JsonBean("student");
+		Conditions c = new Conditions(clazz,student);
+		//	c.setOderBy("teacher.clazzId", Sort.ASC);
 		Page page = jdbcDao.getPage(1L,1L,c);
 		logger.info(page.getList());
 	}
