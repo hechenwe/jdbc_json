@@ -10,7 +10,12 @@ import com.sooncode.jdbc.constant.STRING;
 
 public class JsonBean {
 	private String beanName;
-
+	/***
+	 * 唯一标识
+	 */
+    private String id;
+    
+    private Object idVal;
 	private Map<String, Object> map = new HashMap<>();
 
 	public JsonBean(){
@@ -124,4 +129,22 @@ public class JsonBean {
 	public String toString() {
 		return this.getJson();
 	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public Object getIdVal() {
+		return idVal;
+	}
+
+	public void setIdVal(Object idVal) {
+		this.idVal = idVal;
+	}
+	
+	
 }

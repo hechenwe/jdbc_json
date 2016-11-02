@@ -89,29 +89,50 @@ public class JdbcDao {
 			return pager;
 
 		} else if (n == 2) {// 1对1
-	 
+
 			List<Map<String, Object>> list = one2Many(leftDbBean, otherDbBeans, conditions);
-			List<JsonBean> jsonBean = findJsonBean(list, n,leftDbBean, otherDbBeans, conditions);
+			List<JsonBean> jsonBeans = new LinkedList<>();
+			for (Map<String, Object> map : list) {
+				JsonBean jsonBean = new JsonBean();
+				for (Entry<String, Object> en : map.entrySet()) {
+					String key = en.getKey();
+					Object val = en.getValue();
+					String[] strs = key.split(STRING.ESCAPE_DOLLAR);
+					if (strs.length > 0) {
+						String pr = strs[1];
+						jsonBean.addField(pr, val);
+					}
+				}
+				jsonBeans.add(jsonBean);
+			}
+
 			Long size = getSize(conditions);
-			Page pager = new Page(pageNum, pageSize, size, jsonBean);
+			Page pager = new Page(pageNum, pageSize, size, jsonBeans);
 			return pager;
 
-		}else if(n == 3){ //一对多
-	 
+		} else if (n == 3) { // 一对多
+
 			List<Map<String, Object>> list = one2Many(leftDbBean, otherDbBeans, conditions);
-			List<JsonBean> jsonBean = findJsonBean(list, n,leftDbBean, otherDbBeans, conditions);
+			List<JsonBean> leftJsonBeans = findJsonBean(list, null, null, null, leftDbBean);
+			for (JsonBean leftJsonBean : leftJsonBeans) {
+				String id = leftJsonBean.getId();
+				Object idVal = leftJsonBean.getIdVal();
+				for (DbBean dbBean : otherDbBeans) {
+					List<JsonBean> otherJsonBeans = findJsonBean(list, leftDbBean.getBeanName(), id, idVal, dbBean);
+					leftJsonBean.addField(dbBean.getBeanName(), otherJsonBeans);
+				}
+			}
+
 			Long size = getSize(conditions);
-			Page pager = new Page(pageNum, pageSize, size, jsonBean);
+			Page pager = new Page(pageNum, pageSize, size, leftJsonBeans);
 			return pager;
 		}
 
 		return null;
 	}
 
-	
-	private List<Map<String, Object>>  one2Many(DbBean leftDbBean ,List<DbBean>otherDbBeans ,Conditions conditions){
-		
-		 
+	private List<Map<String, Object>> one2Many(DbBean leftDbBean, List<DbBean> otherDbBeans, Conditions conditions) {
+
 		String leftTableName = T2E.toTableName(leftDbBean.getBeanName());
 		String leftTablePk = T2E.toColumn(leftDbBean.getPrimaryField());
 		List<DbBean> newDbBeans = new ArrayList<>();
@@ -144,63 +165,57 @@ public class JdbcDao {
 		List<Map<String, Object>> list = jdbc.gets(p);
 		return list;
 	}
-	
-	
-	private List<JsonBean> findJsonBean(List<Map<String, Object>> list, int relation, DbBean leftDbBean ,List<DbBean> otherDbBeans ,Conditions conditions) {
 
-		String leftBeanName = leftDbBean.getBeanName();
-		 
-		Map<String,List<JsonBean>> otherMap = new TreeMap<>();
-		for (DbBean jsonBean : otherDbBeans) {
-			otherMap.put(jsonBean.getBeanName(), new ArrayList<JsonBean>());
+	private List<JsonBean> findJsonBean(List<Map<String, Object>> list, String mainBeanName, String id, Object idVal,
+			DbBean dbBean) {
+		if (id != null && idVal != null) {
+			List<Map<String, Object>> newlist = new LinkedList<>();
+			for (Map<String, Object> map : list) {
+				Object thisVal = map.get(mainBeanName + STRING.DOLLAR + id);
+				if (thisVal.toString().equals(idVal.toString())) {
+					newlist.add(map);
+				}
+			}
+			list = newlist;
 		}
 
-		List<JsonBean> allBeans = new ArrayList<>();
-		Map<Object, JsonBean > leftBeans = new TreeMap <>();
-  
-		
+		String dbBeanName = dbBean.getBeanName();
+		String pkName = dbBean.getPrimaryField();
+		List<JsonBean> jsonBeans = new LinkedList<>();
+		String str = new String();
 		for (Map<String, Object> map : list) {
-			JsonBean allBean = new JsonBean();
-			JsonBean leftBean = new JsonBean(leftBeanName);
-			Map<String, JsonBean > otherM   = new TreeMap<>();
-			for (DbBean bean : otherDbBeans) {
-				otherM.put(bean.getBeanName(), new JsonBean(bean.getBeanName()));
-			}
-			
+			JsonBean jsonBean = new JsonBean();
 			for (Entry<String, Object> en : map.entrySet()) {
 				String key = en.getKey();
 				Object val = en.getValue();
-					String[] strs = key.split(STRING.ESCAPE_DOLLAR);
-					if (strs.length > 0) {
-						String beanName = strs[0];
-						String pr = strs[1];
-						allBean.addField(pr, val);
-						if(beanName.toUpperCase().equals(leftBeanName.toUpperCase())){
-							leftBean.addField(pr, val);
-						}
-						if(otherM.get(beanName)!=null){
-						otherM.get(beanName).addField(pr, val);
+				String[] strs = key.split(STRING.ESCAPE_DOLLAR);
+				if (strs.length > 0) {
+					String beanName = strs[0];
+					String pr = strs[1];
+
+					if (dbBeanName.toUpperCase().equals(beanName.toUpperCase())) {
+						jsonBean.addField(pr, val);
+						if (pkName.toUpperCase().equals(pr.toUpperCase())) {
+							jsonBean.setId(pkName);
+							jsonBean.setIdVal(val);
 						}
 					}
+				}
 			}
-			for (DbBean bean : otherDbBeans) {
-				otherMap.get(bean.getBeanName()).add(otherM.get(bean.getBeanName()));
+			if (jsonBeans.size() == 0) {
+				jsonBeans.add(jsonBean);
+				str = str + jsonBean.getIdVal().toString() + STRING.AT;
+			} else {
+				if (! str.contains(jsonBean.getIdVal().toString())) {
+					jsonBeans.add(jsonBean);
+					str = str + jsonBean.getIdVal().toString() + STRING.AT;	
+				}
 			}
-			
-			allBeans.add(allBean);
-			leftBeans.put(leftBean,leftBean);
+
 		}
 
-		if(relation==2){ //one to one 
-			return allBeans;
-		}else if(relation == 3){// one to many
-		
-			return null;
-		}
-		
-		
-		return null;
-		 
+		return jsonBeans;
+
 	}
 
 	public long save(JsonBean jsonBean) {
@@ -360,11 +375,11 @@ public class JdbcDao {
 			if (middlelist.size() >= 2) {
 				int n = 0;
 				for (ForeignKey f : middlelist) {
-					if (f.getReferDbBeanName().equals(rightBean.getBeanName())
+					if (f.getReferDbBeanName().toUpperCase().equals(rightBean.getBeanName().toUpperCase())
 							|| f.getReferDbBeanName().equals(leftDbBean.getBeanName())) {
 						n++;
 					}
-					if (f.getReferDbBeanName().equals(leftDbBean.getBeanName())) {
+					if (f.getReferDbBeanName().toUpperCase().equals(leftDbBean.getBeanName().toUpperCase())) {
 						if (f.isUnique() == true) {
 							m1to1++;
 						} else {
@@ -378,16 +393,29 @@ public class JdbcDao {
 					return 5;/// 未知
 				}
 			}
-			int r1to1 = 0;
-			int r1to3 = 0;
-			if (rightList.size() > 0) {
-				for (ForeignKey f : rightList) {
 
-					if (f.getReferDbBeanName().equals(leftDbBean.getBeanName())) {
+			if (middlelist.size() == 1) {
+				for (ForeignKey f : middlelist) {
+					if (f.getReferDbBeanName().toUpperCase().equals(leftDbBean.getBeanName().toUpperCase())) {
 						if (f.isUnique() == true) {
-							r1to1++;
+							m1to1++;
 						} else {
-							r1to3++;
+							m1to3++;
+						}
+					}
+				}
+
+				int r1to1 = 0;
+				int r1to3 = 0;
+				if (rightList.size() > 0) {
+					for (ForeignKey f : rightList) {
+
+						if (f.getReferDbBeanName().toUpperCase().equals(leftDbBean.getBeanName().toUpperCase())) {
+							if (f.isUnique() == true) {
+								r1to1++;
+							} else {
+								r1to3++;
+							}
 						}
 					}
 				}

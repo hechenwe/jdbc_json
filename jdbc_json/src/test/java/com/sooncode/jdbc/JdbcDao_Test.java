@@ -136,7 +136,8 @@ public class JdbcDao_Test {
 		
 		JsonBean clazz = new JsonBean("clazz");
 		JsonBean student = new JsonBean("student");
-		Conditions c = new Conditions(clazz,student);
+		JsonBean teacher = new JsonBean("teacher");
+		Conditions c = new Conditions(clazz,student,teacher);
 		//	c.setOderBy("teacher.clazzId", Sort.ASC);
 		Page page = jdbcDao.getPage(1L,1L,c);
 		logger.info(page.getList());
