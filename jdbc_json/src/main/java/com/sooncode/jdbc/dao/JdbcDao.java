@@ -1,23 +1,18 @@
 package com.sooncode.jdbc.dao;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.TreeMap;
 
-import org.apache.commons.collections.list.TreeList;
 import org.apache.log4j.Logger;
-import org.apache.log4j.chainsaw.Main;
 
 import com.sooncode.jdbc.Jdbc;
 import com.sooncode.jdbc.JdbcFactory;
 import com.sooncode.jdbc.cglib.DbBean;
 import com.sooncode.jdbc.cglib.DbBeanCache;
 import com.sooncode.jdbc.cglib.ForeignKey;
-import com.sooncode.jdbc.cglib.Index;
 import com.sooncode.jdbc.constant.DATA;
 import com.sooncode.jdbc.constant.SQL_KEY;
 import com.sooncode.jdbc.constant.STRING;

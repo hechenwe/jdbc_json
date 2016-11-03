@@ -25,6 +25,8 @@ public class Conditions {
 	private JsonBean leftBean;
 	private JsonBean[] otherBeans;
 	private Map<String, Condition> ces;
+	
+	private String keys;
 
 	/**
 	 * 排序的SQL片段
@@ -84,6 +86,22 @@ public class Conditions {
 		if (c != null) {
 			c.setConditionSign(sign + new String());
 			ces.put(c.getKey(), c);
+		}
+		return this;
+	}
+	/**
+	 * 设置条件
+	 * 
+	 * @param key
+	 *            字段
+	 * @param sign
+	 *            条件使用的符号
+	 * @return
+	 */
+	public Conditions setCondition(String key1, String key2) {
+		if(keys == null)
+		{
+			keys = key1 +SQL_KEY.EQ + key2;
 		}
 		return this;
 	}
