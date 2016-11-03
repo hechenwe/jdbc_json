@@ -433,9 +433,8 @@ public class JdbcDao {
 				}
 				if (n == 2) {
 					return 4;// 多对多
-				} else {
-					return 5;/// 未知
-				}
+				} 
+
 			}
 
 			if (middlelist.size() == 1) {
