@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import org.apache.commons.collections.list.TreeList;
 import org.apache.log4j.Logger;
 import org.apache.log4j.chainsaw.Main;
 
@@ -73,8 +74,7 @@ public class JdbcDao {
 		if (n == 1) {
 			String columns = ComSQL.columns4One(leftDbBean);
 			String where = conditions.getWhereParameter().getReadySql();
-			String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM + leftTableName + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE
-					+ where;
+			String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM + leftTableName + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE + where;
 			Parameter p = conditions.getWhereParameter();
 			p.setReadySql(sql);
 			List<Map<String, Object>> list = jdbc.gets(p);
@@ -126,9 +126,64 @@ public class JdbcDao {
 			Long size = getSize(conditions);
 			Page pager = new Page(pageNum, pageSize, size, leftJsonBeans);
 			return pager;
-		}
+		} else if (n == 4) {// 多对多
 
-		return null;
+			List<DbBean> newDbBeans = new ArrayList<>();
+			newDbBeans.add(leftDbBean);
+			newDbBeans.addAll(otherDbBeans);
+
+			String columns = ComSQL.columns(newDbBeans);
+			Parameter p = conditions.getWhereParameter();
+			String where = p.getReadySql();
+			String tableNames = new String();
+			String condition = new String();
+
+			DbBean middleDbBean = otherDbBeans.get(0);
+			DbBean rightDbBean = otherDbBeans.get(1);
+			String middleTableName = T2E.toTableName(middleDbBean.getBeanName());
+			String rightTableName = T2E.toTableName(rightDbBean.getBeanName());
+			String rightTablePk = T2E.toColumn(rightDbBean.getPrimaryField());
+			tableNames = leftTableName + STRING.SPACING + STRING.COMMA + STRING.SPACING + middleTableName + STRING.SPACING + STRING.COMMA + STRING.SPACING + rightTableName + STRING.SPACING;
+			List<ForeignKey> fkes = middleDbBean.getForeignKeies();
+			for (ForeignKey f : fkes) {
+				if (f.getReferDbBeanName().toUpperCase().equals(leftTableName.toUpperCase())) {
+					String fk = T2E.toColumn(f.getForeignProperty());
+					condition = condition + SQL_KEY.AND + middleTableName + STRING.POINT + fk + STRING.SPACING + STRING.EQ + STRING.SPACING + leftTableName + STRING.POINT + leftTablePk + STRING.SPACING;
+
+				}
+				if (f.getReferDbBeanName().toUpperCase().equals(rightTableName.toUpperCase())) {
+					String fk = T2E.toColumn(f.getForeignProperty());
+					condition = condition + SQL_KEY.AND + middleTableName + STRING.POINT + fk + STRING.SPACING + STRING.EQ + STRING.SPACING + rightTableName + STRING.POINT + rightTablePk + STRING.SPACING;
+
+				}
+			}
+
+			String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM  + tableNames + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE + condition + where;
+			p.setReadySql(sql);
+			List<Map<String, Object>> list = jdbc.gets(p);
+
+			List<JsonBean> leftJsonBeans = findJsonBean(list, null, null, null, leftDbBean);
+			for (JsonBean jsonBean : leftJsonBeans) {
+				List<JsonBean> middleJsonBeans = findJsonBean(list, leftDbBean.getBeanName(), jsonBean.getId(),jsonBean.getIdVal(), middleDbBean);
+				List<JsonBean> jsonBeans = new LinkedList<>();
+				for (JsonBean middleJsonBean : middleJsonBeans) {
+					List<JsonBean> rightJsonBeans = findJsonBean(list, middleDbBean.getBeanName(), middleJsonBean.getId(), middleJsonBean.getIdVal(), rightDbBean);
+					jsonBeans.addAll(rightJsonBeans);
+				
+				}
+				jsonBean.addField(rightDbBean.getBeanName(),jsonBeans);
+			}
+			
+			Long size = getSize(conditions);
+			Page pager = new Page(pageNum, pageSize, size, leftJsonBeans);
+			
+			
+			return pager;
+		} else if (n == 5) {// 未知
+			return null;
+		} else {
+			return null;
+		}
 	}
 
 	private List<Map<String, Object>> one2Many(DbBean leftDbBean, List<DbBean> otherDbBeans, Conditions conditions) {
@@ -147,27 +202,23 @@ public class JdbcDao {
 		for (DbBean dbBean : otherDbBeans) {
 			String tableName = T2E.toTableName(dbBean.getBeanName());
 
-			otherTableName = otherTableName + STRING.SPACING + STRING.COMMA + STRING.SPACING + tableName
-					+ STRING.SPACING;
+			otherTableName = otherTableName + STRING.SPACING + STRING.COMMA + STRING.SPACING + tableName + STRING.SPACING;
 			List<ForeignKey> fkes = dbBean.getForeignKeies();
 			for (ForeignKey f : fkes) {
 				if (f.getReferDbBeanName().toUpperCase().equals(leftTableName.toUpperCase())) {
 					String fk = T2E.toColumn(f.getForeignProperty());
-					condition = condition + SQL_KEY.AND + tableName + STRING.POINT + fk + STRING.SPACING + STRING.EQ
-							+ STRING.SPACING + leftTableName + STRING.POINT + leftTablePk + STRING.SPACING;
+					condition = condition + SQL_KEY.AND + tableName + STRING.POINT + fk + STRING.SPACING + STRING.EQ + STRING.SPACING + leftTableName + STRING.POINT + leftTablePk + STRING.SPACING;
 
 				}
 			}
 		}
-		String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM + leftTableName + otherTableName + SQL_KEY.WHERE
-				+ SQL_KEY.ONE_EQ_ONE + condition + where;
+		String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM + leftTableName + otherTableName + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE + condition + where;
 		p.setReadySql(sql);
 		List<Map<String, Object>> list = jdbc.gets(p);
 		return list;
 	}
 
-	private List<JsonBean> findJsonBean(List<Map<String, Object>> list, String mainBeanName, String id, Object idVal,
-			DbBean dbBean) {
+	private List<JsonBean> findJsonBean(List<Map<String, Object>> list, String mainBeanName, String id, Object idVal, DbBean dbBean) {
 		if (id != null && idVal != null) {
 			List<Map<String, Object>> newlist = new LinkedList<>();
 			for (Map<String, Object> map : list) {
@@ -206,9 +257,9 @@ public class JdbcDao {
 				jsonBeans.add(jsonBean);
 				str = str + jsonBean.getIdVal().toString() + STRING.AT;
 			} else {
-				if (! str.contains(jsonBean.getIdVal().toString())) {
+				if (!str.contains(jsonBean.getIdVal().toString())) {
 					jsonBeans.add(jsonBean);
-					str = str + jsonBean.getIdVal().toString() + STRING.AT;	
+					str = str + jsonBean.getIdVal().toString() + STRING.AT;
 				}
 			}
 
@@ -323,8 +374,7 @@ public class JdbcDao {
 		Parameter where = conditions.getWhereParameter();
 		Parameter p = new Parameter();
 		String tableName = T2E.toTableName(cb.getBeanName());
-		String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM + tableName + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE
-				+ where.getReadySql();
+		String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM + tableName + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE + where.getReadySql();
 		p.setReadySql(sql);
 		p.setParams(where.getParams());
 		List<Map<String, Object>> list = jdbc.gets(p);
@@ -375,8 +425,7 @@ public class JdbcDao {
 			if (middlelist.size() >= 2) {
 				int n = 0;
 				for (ForeignKey f : middlelist) {
-					if (f.getReferDbBeanName().toUpperCase().equals(rightBean.getBeanName().toUpperCase())
-							|| f.getReferDbBeanName().equals(leftDbBean.getBeanName())) {
+					if (f.getReferDbBeanName().toUpperCase().equals(rightBean.getBeanName().toUpperCase()) || f.getReferDbBeanName().toUpperCase().equals(leftDbBean.getBeanName().toUpperCase())) {
 						n++;
 					}
 					if (f.getReferDbBeanName().toUpperCase().equals(leftDbBean.getBeanName().toUpperCase())) {

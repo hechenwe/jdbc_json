@@ -14,13 +14,12 @@ import com.sooncode.jdbc.json.JsonBean;
 import com.sooncode.jdbc.sql.condition.Conditions;
 import com.sooncode.jdbc.sql.condition.Sort;
 import com.sooncode.jdbc.sql.condition.sign.EqualSign;
+import com.sooncode.jdbc.sql.condition.sign.LikeSign;
 import com.sooncode.jdbc.util.Page;
  
 public class JdbcDao_Test {
     private static Logger logger = Logger.getLogger("JdbcDaoTest.class");
 	private JdbcDao jdbcDao = JdbcDaoFactory.getJdbcDao();
-	 
-	
 	@Test
 	public void save(){
 	   String json = "{\"teacher\":{\"createDate\":\"2016-10-26 14:15:22\",\"teacherName\":\"hechen\",\"clazzId\":\"001\",\"sex\":\"1\"}}";
@@ -117,7 +116,7 @@ public class JdbcDao_Test {
 		Conditions c = new Conditions(j);
 		c.setOderBy("teacher.clazzId", Sort.ASC);
 		Page page = jdbcDao.getPage(1L,1L,c);
-		logger.info(page.getList());
+		logger.info(page.getJsonBeans());
 	}
 	
 	
@@ -129,18 +128,50 @@ public class JdbcDao_Test {
 		Conditions c = new Conditions(student,identity);
 	//	c.setOderBy("teacher.clazzId", Sort.ASC);
 		Page page = jdbcDao.getPage(1L,1L,c);
-		logger.info(page.getList());
+		logger.info(page.getJsonBeans());
 	}
 	@Test 
 	public void getPage3(){  //1对多
 		
 		JsonBean clazz = new JsonBean("clazz");
 		JsonBean student = new JsonBean("student");
+		student.addField("name","hechen");
 		JsonBean teacher = new JsonBean("teacher");
 		Conditions c = new Conditions(clazz,student,teacher);
-		//	c.setOderBy("teacher.clazzId", Sort.ASC);
+		c.setCondition("student.name", LikeSign.LIKE);
+	    c.setOderBy("teacher.clazzId", Sort.ASC);
 		Page page = jdbcDao.getPage(1L,1L,c);
-		logger.info(page.getList());
+		logger.info(page.getJsonBeans());
+	}
+	@Test 
+	public void getPage5(){  //1对多
+		
+		JsonBean student = new JsonBean("student");
+		student.addField("name","hechen");
+		JsonBean chooseCourse = new JsonBean("chooseCourse");
+		chooseCourse.addField("score",60);
+		JsonBean course = new JsonBean("course");
+		Conditions c = new Conditions(chooseCourse,student,course);
+		c.setCondition("student.name", LikeSign.LIKE);
+		c.setCondition("chooseCourse.score", EqualSign.GTEQ);
+		Page page = jdbcDao.getPage(1L,1L,c);
+		logger.info(page.getJsonBeans());
+	}
+	
+	
+	@Test 
+	public void getPage4(){  //多对多
+		
+		JsonBean student = new JsonBean("student");
+		student.addField("name","hechen");
+		JsonBean chooseCourse = new JsonBean("chooseCourse");
+		chooseCourse.addField("score",60);
+		JsonBean course = new JsonBean("course");
+		Conditions c = new Conditions(student,chooseCourse,course);
+		c.setCondition("student.name", LikeSign.LIKE);
+		c.setCondition("chooseCourse.score", EqualSign.GTEQ);
+		Page page = jdbcDao.getPage(1L,1L,c);
+		logger.info(page.getJsonBeans());
 	}
 	
 	

@@ -259,7 +259,7 @@ public class Conditions {
 					String newSign = sign;// Sign.Signmap.get(sign);
 					newSign = newSign == null ? SQL_KEY.EQ : newSign; // 如果字段不为空，但是没有条件符号，默认使用等值查询"="。
 					if (newSign.equals(SQL_KEY.LIKE)) {
-						sql = sql + SQL_KEY.AND + con + SQL_KEY.LIKE + STRING.SPACING + STRING.QUESTION;// "
+						sql = sql + SQL_KEY.AND + con + STRING.SPACING + SQL_KEY.LIKE + STRING.SPACING + STRING.QUESTION;// "
 																										// AND
 																										// LIKE
 																										// ?";
@@ -283,7 +283,7 @@ public class Conditions {
 						}
 						vales = vales + SQL_KEY.R_BRACKET + STRING.SPACING;// ")
 																			// ";
-						sql = sql + SQL_KEY.AND + con + SQL_KEY.IN + vales;
+						sql = sql + SQL_KEY.AND + con + STRING.SPACING + SQL_KEY.IN + vales;
 					}
 
 					else {

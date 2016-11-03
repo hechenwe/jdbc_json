@@ -18,9 +18,9 @@ public class Page   {
 	//------------------------------------------ 属性 --------------------------------------------------------
 	
 	/** 记录结果集 */
-	private List<JsonBean> list;
+	private List<JsonBean> jsonBeans;
 	
-	private JsonBean  jsonBean;
+	//private JsonBean  jsonBean;
 	/** 总记录数 */
 	private Long total = 0L; // 总记录数
 	
@@ -47,21 +47,21 @@ public class Page   {
 	
 	//--------------------------------------------- 构造器 ----------------------------------------------------------------
 
-	public Page (long pageNumber, long pageSize, long total, List<JsonBean> list) {
+	public Page (long pageNumber, long pageSize, long total, List<JsonBean> jsonBeans) {
 		 
 		 
 		init( total ,pageNumber, pageSize);
-		if(list==null ){
-			this.list = new ArrayList<>();
+		if(jsonBeans==null ){
+			this.jsonBeans = new ArrayList<>();
 		}else{
-			this.list = list;
+			this.jsonBeans = jsonBeans;
 		}
 	}
 	
-	public Page(long pageNumber, long pageSize, long total, JsonBean jsonBean) {
+	/*public Page(long pageNumber, long pageSize, long total, JsonBean jsonBean) {
 		init( total ,pageNumber, pageSize);
 		this.jsonBean = jsonBean;
-	}
+	}*/
 
 	/** 设置基本参数 */
 	private void init(long total, long pageNumber, long pageSize) {
@@ -169,21 +169,15 @@ public class Page   {
 		this.hasNextPage = hasNextPage;
 	}
 
-	public List<JsonBean> getList() {
-		return list;
+	public List<JsonBean> getJsonBeans() {
+		return jsonBeans;
 	}
 
-	public void setList(List<JsonBean> list) {
-		this.list = list;
+	public void setJsonBeans(List<JsonBean> jsonBeans) {
+		this.jsonBeans = jsonBeans;
 	}
 
-	public JsonBean getJsonBean() {
-		return jsonBean;
-	}
-
-	public void setJsonBean(JsonBean jsonBean) {
-		this.jsonBean = jsonBean;
-	}
+	 
  
 
 	 
