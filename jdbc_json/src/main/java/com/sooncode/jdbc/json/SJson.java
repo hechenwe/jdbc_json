@@ -3,9 +3,13 @@ package com.sooncode.jdbc.json;
 import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import com.sooncode.jdbc.constant.STRING;
+
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -20,6 +24,9 @@ public class SJson {
 	 * JSONObject 对象
 	 */
 	private JSONObject jObj;
+	
+	private Map<String,SJson> map = new LinkedHashMap<>();
+	
 	/**
 	 * JSONArray 数组
 	 */
@@ -156,6 +163,27 @@ public class SJson {
 			this.json = this.jObj.toString();
 		}
 	}
+	
+	
+	public void addFields(String key, SJson sJson) {
+		if (key != null && sJson != null && !key.trim().equals("")) {
+			this.map.put(key, sJson);
+			this.update(this);
+		}
+	}
+	
+	private SJson update(SJson sJson){
+		JSONObject jo = sJson.jObj;
+		for (Entry<String, SJson> en : sJson.map.entrySet()) {
+			String key = en.getKey();
+			SJson s = en.getValue();
+			jo.remove(key);
+			jo.accumulate(key, s.toString());
+		}
+		sJson.jObj = jo;
+		sJson.json= jo.toString();
+		return sJson;
+	}
 
 	/**
 	 * 添加对象
@@ -193,35 +221,9 @@ public class SJson {
 		}
 	}
 
-	/**
-	 * 修改 字段
-	 * 
-	 * @param key
-	 *            字段名称
-	 * @param value
-	 *            值
-	 */
-	public void updateFields(String key, Object value) {
-		if (key != null && value != null && !key.trim().equals("")) {
-			this.removeFields(key);
-			this.addFields(key, value);
-		}
-	}
+	 
 
-	/**
-	 * 删除 字段，对象，数组
-	 * 
-	 * @param key
-	 *            字段，对象，数组名称
-	 */
-	public Object removeFields(String key) {
-		if (key != null && !key.trim().equals("")) {
-			Object r = this.jObj.remove(key);
-			this.json = this.jObj.toString();
-			return r;
-		}
-		return null;
-	}
+	 
 
 	/**
 	 * 获取字段，对象，数组 值
@@ -305,83 +307,7 @@ public class SJson {
 
 	}
 
-	/**
-	 * 
-	 * @param jsonString
-	 *            避免key中有class关键字
-	 * @param key
-	 *            字段名称 如："nb.phots[0].url" , "name" 等
-	 * @return
-	 */
-	private Object remove(String jsonString, String key) {
-
-		if (jsonString == null) {
-			return null;
-		}
-
-		String[] keys = key.split("\\.");
-		JSONObject jsonRoot = null;
-		try {
-			jsonRoot = JSONObject.fromObject(jsonString);
-
-		} catch (Exception e) {
-			return null;
-		}
-		if (keys.length == 1) {
-			if (!keys[0].contains("[") && !keys[0].contains("]")) {
-				Object obj = jsonRoot.get(keys[0]);
-				return obj == null ? null : obj;
-			} else {
-				int start = keys[0].indexOf("[");
-				int end = keys[0].indexOf("]");
-				String number = keys[0].substring(start + 1, end);
-				int num = Integer.valueOf(number);
-				String thisKey = keys[0];
-				thisKey = thisKey.replace("[" + num + "]", "");
-				JSONArray jsonArray = JSONArray.fromObject(jsonRoot.get(thisKey));
-				if (num < jsonArray.size()) {
-					JSONObject obj = (JSONObject) jsonArray.get(num);
-					return obj;
-				}
-				return null;
-			}
-		} else {
-
-			String newKeys = new String();
-			for (int i = 1; i < keys.length; i++) {
-				if (i == 1) {
-					newKeys = keys[i];
-				} else {
-					newKeys = newKeys + "." + keys[i];
-				}
-			}
-			// -----------------------------------
-			String thisKey = keys[0];
-
-			if (thisKey.contains("[") && thisKey.contains("]")) {
-				int start = thisKey.indexOf("[");
-				int end = thisKey.indexOf("]");
-				String number = thisKey.substring(start + 1, end);
-				int num = Integer.valueOf(number);
-				thisKey = thisKey.replace("[" + num + "]", "");
-				JSONArray jsonArray = JSONArray.fromObject(jsonRoot.get(thisKey));
-				if (num < jsonArray.size()) {
-					JSONObject obj = (JSONObject) jsonArray.get(num);
-					return this.getValue(obj.toString(), newKeys);
-				} else {
-					return null;
-				}
-			} else {
-				Object obj = jsonRoot.get(keys[0]);
-				if (obj == null) {
-					return null;
-				} else {
-					String value = obj.toString();
-					return this.getValue(value, newKeys);
-				}
-			}
-		}
-	}
+	 
 	/**
 	 * 
 	 * @param jsonString
@@ -458,6 +384,70 @@ public class SJson {
 				}
 			}
 		}
+	}
+
+	public void removeFields(String key){
+		remove(null,this,null, key);
+	}
+	
+	public SJson remove(SJson lastSJson , SJson sJson,String lastKey, String key){
+		 String[] keys = key.split(STRING.ESCAPE_POINT);
+		if(keys.length==1){
+			JSONObject j = sJson.jObj;
+			j.remove(keys[0]);
+			sJson = update(sJson);
+			if(lastSJson!=null && lastKey != null){
+				lastSJson.map.remove(lastKey);
+				lastSJson.map.put(lastKey, sJson);
+				return update(lastSJson);
+			}
+			return sJson;
+		}else{
+			String thisKey = new String();
+			for (int i = 1;i<keys.length;i++) {
+				if(i==1){
+					thisKey = thisKey + keys[i];
+				}else{
+					thisKey = thisKey +STRING.POINT + keys[i];
+				}
+			}
+		    SJson s = sJson.map.get(keys[0]);
+		    SJson updateS = remove(sJson,s,keys[0], thisKey);
+			return updateS;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public String getJson() {
+		return json;
+	}
+
+	public void setJson(String json) {
+		this.json = json;
+	}
+
+	public JSONObject getjObj() {
+		return jObj;
+	}
+
+	public void setjObj(JSONObject jObj) {
+		this.jObj = jObj;
+	}
+
+	public JSONArray getjArray() {
+		return jArray;
+	}
+
+	public void setjArray(JSONArray jArray) {
+		this.jArray = jArray;
 	}
 
 	/**

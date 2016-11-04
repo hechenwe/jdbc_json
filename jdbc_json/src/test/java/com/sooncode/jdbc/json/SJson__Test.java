@@ -45,4 +45,27 @@ public class SJson__Test {
 		//logger.info(sj2.getFields("nb.phots[1].url"));
 		
 	}
+    @Test
+	public void remove(){
+    	SJson s = new SJson();
+    	s.addFields("id", 11);
+    	s.addFields("name", "hechen");
+    	
+    	SJson newJ = new SJson();
+    	newJ.addFields("id", 22);
+    	newJ.addFields("name", "xiaogo");
+    	
+    	SJson newJ2 = new SJson();
+    	newJ2.addFields("id", "90");
+    	newJ2.addFields("name", "hechen");
+    	newJ.addFields("mao", newJ2);
+    	
+    	s.addFields("dog", newJ);
+    	logger.info(s.getJsonString());
+    	s.removeFields("dog.mao.id");
+    	logger.info(s.getJsonString());
+    	
+    	
+    }
+    
 }
