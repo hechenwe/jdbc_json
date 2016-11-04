@@ -12,7 +12,6 @@ import com.sooncode.jdbc.constant.DATE_FORMAT;
 import com.sooncode.jdbc.constant.SQL_KEY;
 import com.sooncode.jdbc.constant.STRING;
  
-import com.sooncode.jdbc.reflect.RObject;
 import com.sooncode.jdbc.util.T2E;
 
 /**
@@ -178,40 +177,7 @@ public class ComSQL {
 		p.setParams(paramet);
 		return p;
 	}
-	/**
-	 * 获取查询语句的可执行SQL (单表)
-	 * 
-	 * @param object
-	 * @return 可执行SQL
-	 */
-	public static Parameter select(String tableName, Object object) {
-		//String tableName = T2E.toColumn(object.getClass().getSimpleName());
-		Map<String, Object> map = new RObject(object).getFiledAndValue();
-		int m = 0;
-		String s = SQL_KEY.ONE_EQ_ONE;
-		String c = new String();
-		Map<Integer,Object> paramet = new HashMap<>();
-		Integer index = 1;
-		for (Entry<String, Object> entry : map.entrySet()) {
-			String key = entry.getKey().replace("$cglib_prop_", "");
-			if (entry.getValue() != null) {
-				s = s +SQL_KEY.AND;
-				s = s + tableName+STRING.POINT+ T2E.toColumn(key) +SQL_KEY.EQ +STRING.QUESTION;
-				paramet.put(index,entry.getValue());
-				index++;
-			}
-			if (m != 0) {
-				c = c + SQL_KEY.COMMA;
-			}
-			c = c + tableName+STRING.POINT+T2E.toColumn(key) + SQL_KEY.AS +   tableName+STRING.UNDERLINE+T2E.toColumn(key);
-			m++;
-		}
-		String sql = SQL_KEY.SELECT  + c  + SQL_KEY.FROM + tableName + SQL_KEY.WHERE + s;
-		Parameter p = new Parameter();
-		p.setReadySql(sql);
-		p.setParams(paramet);
-		return p;
-	}
+	 
 	 
 	
 	/**
@@ -413,133 +379,11 @@ public class ComSQL {
 		
 	}
 
-	/**
-	 * 获取多对多映射的可执行SQL
-	 * 
-	 * @param left
-	 *            主表对应的实体类
-	 * @param middle
-	 *            中间表对应的实体类
-	 * @param right
-	 *            N端对应的实体类
-	 * @return 可执行SQL
-	 */
-	public static Parameter getM2M(Object left, Object middle, Object right, long pageNumber, long pageSize) {
-		Parameter p = new Parameter();
-		String leftTable = T2E.toColumn(left.getClass().getSimpleName());
-		String middleTable = T2E.toColumn(middle.getClass().getSimpleName());
-		String rightTable = T2E.toColumn(right.getClass().getSimpleName());
-
-		RObject leftRObject = new RObject(left);
-		RObject rightRObject = new RObject(right);
-
-		String leftPk = T2E.toColumn(leftRObject.getPk());
-		String rightPk = T2E.toColumn(rightRObject.getPk());
-		Map<String, Object> leftFileds = new RObject(left).getFiledAndValue();//EntityCache.getKeyAndValue(left);
-		Map<String, Object> rightFileds =new RObject(right).getFiledAndValue();// EntityCache.getKeyAndValue(right);
-
-		String col = new String();
-		int n = 0;
-		for (Map.Entry<String, Object> en : leftFileds.entrySet()) {
-			if (n != 0) {
-				col = col + SQL_KEY.COMMA;
-			}
-			col = col + leftTable + STRING.POINT  + T2E.toColumn(en.getKey()) + SQL_KEY.AS+ leftTable + STRING.UNDERLINE + T2E.toColumn(en.getKey());
-			n++;
-		}
-		for (Map.Entry<String, Object> en : rightFileds.entrySet()) {
-
-			col = col + SQL_KEY.COMMA + rightTable + STRING.POINT + T2E.toColumn(en.getKey()) + SQL_KEY.AS + rightTable + STRING.UNDERLINE + T2E.toColumn(en.getKey());
-
-		}
-		String sql = SQL_KEY.SELECT  + col + SQL_KEY.FROM + leftTable + SQL_KEY.COMMA + middleTable + SQL_KEY.COMMA + rightTable;
-
-		sql = sql + SQL_KEY.WHERE + leftTable + STRING.POINT + leftPk + SQL_KEY.EQ+ middleTable + STRING.POINT + leftPk + SQL_KEY.AND + rightTable + STRING.POINT + rightPk + SQL_KEY.EQ + middleTable +  STRING.POINT + rightPk + SQL_KEY.AND  + leftTable + STRING.POINT  + leftPk + STRING.EQ + STRING.S_QUOTES   + leftFileds.get(T2E.toField(leftPk)) + STRING.S_QUOTES;
-		Long index = (pageNumber - 1) * pageSize;
-		sql = sql + SQL_KEY.LIMIT   + index +  STRING.COMMA  + pageSize;
-        p.setReadySql(sql);
-		return p;
-	}
-
-	/**
-	 * 获取 一对一模型的可执行SQL
-	 * 
-	 * @param left
-	 *            被参照表对应的实体类
-	 * @param other
-	 *            其他参照表对应的实体类 ,至少有一个实体类
-	 * @return 可执行SQL
-	 */
-	public static Parameter getO2M(Object left, Object right,long pageNumber,long pageSize) {
-		 
-		Parameter p  = new Parameter();
-		String leftTable = T2E.toColumn(left.getClass().getSimpleName());
-		String rightTable = T2E.toColumn(right.getClass().getSimpleName());
-		RObject leftRObject = new RObject(left);
-		String leftPk = T2E.toColumn(leftRObject.getPk());
-		Object leftValue = leftRObject.getPkValue();
-		Map<String, Object> leftFileds =new RObject(left).getFiledAndValue();// EntityCache.getKeyAndValue(left);
-		String col = new String();
-		int n = 0;
-		for (Map.Entry<String, Object> en : leftFileds.entrySet()) {
-			if (n != 0) {
-				col = col +STRING.COMMA ;
-			}
-			col = col + STRING.SPACING + leftTable + STRING.POINT + T2E.toColumn(en.getKey()) + SQL_KEY.AS  + leftTable + STRING.UNDERLINE + T2E.toColumn(en.getKey());
-			n++;
-		}
-		 
-		Map<String, Object> field = new RObject(right).getFiledAndValue();//EntityCache.getKeyAndValue(right);
-
-		for (Map.Entry<String, Object> en : field.entrySet()) {
-			col = col + STRING.COMMA  + rightTable + STRING.POINT + T2E.toColumn(en.getKey()) + SQL_KEY.AS +  rightTable + STRING.UNDERLINE + T2E.toColumn(en.getKey());
-		}
-
-		String where = new String();
-		String from = STRING.SPACING  + leftTable;
-
-		where = where + leftTable + STRING.POINT + leftPk + SQL_KEY.EQ + rightTable + STRING.POINT+ leftPk;
-		where = where +SQL_KEY.AND +leftTable + STRING.POINT + leftPk + SQL_KEY.EQ + STRING.S_QUOTES  + leftValue + STRING.S_QUOTES ;
-		from = from + STRING.COMMA  + rightTable;
-
-		String sql = SQL_KEY.SELECT  + col + SQL_KEY.FROM  + from +  SQL_KEY.WHERE  + where;
-		Long index = (pageNumber - 1) * pageSize;
-		sql = sql +  SQL_KEY. LIMIT  + index + STRING.COMMA + pageSize;
-		p.setReadySql(sql);
-		 
-		return p;
-	}
 	 
-	/**
-	 * 获取 一对多 关联查询Siz 的SQL  
-	 * @param left
-	 *            被参照表对应的实体类
-	 * @param other
-	 *            其他参照表对应的实体类 ,至少有一个实体类
-	 * @return 可执行SQL
-	 */
-	public static Parameter getO2Msize(Object left, Object right) {
-		Parameter p = new Parameter();
-		
-		String leftTable = T2E.toColumn(left.getClass().getSimpleName());
-		String rightTable = T2E.toColumn(right.getClass().getSimpleName());
-		RObject leftRObject = new RObject(left);
-		String leftPk = T2E.toColumn(leftRObject.getPk());
-		Object leftValue = leftRObject.getPkValue();
-		
-		String where = new String();
-		String from = STRING.SPACING + leftTable;
-		
-		where = where + leftTable + STRING.POINT + leftPk + SQL_KEY.EQ + rightTable + STRING.POINT + leftPk;
-		where = where +SQL_KEY.AND+leftTable + STRING.POINT + leftPk + SQL_KEY.EQ + STRING.S_QUOTES  + leftValue +  STRING.S_QUOTES ;
-		from = from + STRING.COMMA + rightTable;
-		
-		String sql = SQL_KEY.SELECT + SQL_KEY.COUNT + SQL_KEY.AS + SQL_KEY.SIZE + SQL_KEY.FROM + from +  SQL_KEY.WHERE   + where;
-		p.setReadySql(sql);
-		p.setParams(new HashMap<Integer,Object>());
-		return p;
-	}
 
+	 
+	 
+	 
 	 
 	/**
 	 * 获取 一对一模型的可执行SQL

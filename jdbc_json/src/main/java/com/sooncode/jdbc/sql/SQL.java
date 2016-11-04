@@ -2,10 +2,8 @@ package com.sooncode.jdbc.sql;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import com.sooncode.jdbc.constant.STRING;
-import com.sooncode.jdbc.reflect.RObject;
 import com.sooncode.jdbc.sql.condition.Cond;
 import com.sooncode.jdbc.util.T2E;
 
@@ -54,23 +52,7 @@ public class SQL {
 		return this;
 	}
 
-	public SQL SELECT(Class<?> clas) {
-
-		RObject rObject = new RObject(clas);
-		Map<String, Object> columns = rObject.getFiledAndValue();
-		int m = 0;
-		String c = "";
-		for (Entry<String, Object> entry : columns.entrySet()) {
-
-			if (m != 0) {
-				c = c + " , ";
-			}
-			c = c + T2E.toColumn(entry.getKey());
-			m++;
-		}
-		this.readySql = "SELECT " + c;
-		return this;
-	}
+	 
 
 	public SQL FROM(Class<?> clas) {
 

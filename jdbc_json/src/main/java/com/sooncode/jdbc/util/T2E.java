@@ -3,7 +3,6 @@ package com.sooncode.jdbc.util;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.chainsaw.Main;
 
 import com.sooncode.jdbc.constant.STRING;
 
