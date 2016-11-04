@@ -7,10 +7,9 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
+import com.sooncode.jdbc.bean.JsonBean;
 import com.sooncode.jdbc.dao.JdbcDao;
 import com.sooncode.jdbc.dao.JdbcDaoFactory;
-import com.sooncode.jdbc.json.JsonBean;
- 
 import com.sooncode.jdbc.sql.condition.Conditions;
 import com.sooncode.jdbc.sql.condition.Sort;
 import com.sooncode.jdbc.sql.condition.sign.EqualSign;
@@ -154,8 +153,8 @@ public class JdbcDao_Test {
 		Conditions c = new Conditions(chooseCourse,student,course);
 		c.setCondition("student.name", LikeSign.LIKE);
 		c.setCondition("chooseCourse.score", EqualSign.GTEQ);
-		Page page = jdbcDao.getPage(1L,1L,c);
-		logger.info(page.getJsonBeans());
+		Page page = jdbcDao.getPage(1L,10L,c);
+		logger.info(page);
 	}
 	
 	

@@ -10,14 +10,15 @@ import org.apache.log4j.Logger;
 
 import com.sooncode.jdbc.Jdbc;
 import com.sooncode.jdbc.JdbcFactory;
-import com.sooncode.jdbc.cglib.DbBean;
-import com.sooncode.jdbc.cglib.DbBeanCache;
-import com.sooncode.jdbc.cglib.ForeignKey;
+import com.sooncode.jdbc.bean.DbBean;
+import com.sooncode.jdbc.bean.DbBeanCache;
+import com.sooncode.jdbc.bean.ForeignKey;
+import com.sooncode.jdbc.bean.JsonBean;
 import com.sooncode.jdbc.constant.DATA;
 import com.sooncode.jdbc.constant.SQL_KEY;
 import com.sooncode.jdbc.constant.STRING;
-import com.sooncode.jdbc.json.JsonBean;
 import com.sooncode.jdbc.sql.ComSQL;
+import com.sooncode.jdbc.sql.PageData;
 import com.sooncode.jdbc.sql.Parameter;
 import com.sooncode.jdbc.sql.TableRelationAnalyze;
 import com.sooncode.jdbc.sql.condition.Conditions;
@@ -54,14 +55,14 @@ public class JdbcDao {
 		DbBean leftDbBean = DbBeanCache.getDbBean(dbKey, conditions.getLeftBean());
 		JsonBean[] otherBeans = conditions.getOtherBeans();
 		List<DbBean> otherDbBeans = new ArrayList<>();
-        
+
 		if (otherBeans.length > 0) {
 			for (JsonBean jBean : otherBeans) {
 				DbBean dbBean = DbBeanCache.getDbBean(dbKey, jBean);
 				otherDbBeans.add(dbBean);
 			}
 		}
-		 
+
 		int n = getRelation(leftDbBean, otherDbBeans.toArray(new DbBean[otherBeans.length]));
 		String leftTableName = T2E.toTableName(leftDbBean.getBeanName());
 		String leftTablePk = T2E.toColumn(leftDbBean.getPrimaryField());
@@ -80,41 +81,48 @@ public class JdbcDao {
 				jb.addFields(map);
 				beans.add(jb);
 			}
-			Long size = getSize(conditions);
+			String sizeSql = SQL_KEY.SELECT + SQL_KEY.COUNT_START + SQL_KEY.AS + SQL_KEY.SIZE + SQL_KEY.FROM + leftTableName + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE + where;
+			Parameter sizeP = conditions.getWhereParameter();
+			sizeP.setReadySql(sizeSql);
+			Map<String, Object> map = jdbc.get(sizeP);
+			Long size = (Long) map.get(T2E.toField(SQL_KEY.SIZE));
+			if (size == null) {
+				size = 0L;
+			}
 			Page pager = new Page(pageNum, pageSize, size, beans);
 			return pager;
 
 		} else if (n == 2) {// 1对1
 
-			List<Map<String, Object>> list = one2one(leftDbBean, otherDbBeans, conditions);
-			List<JsonBean> jsonBeans = findJsonBean(list, null, null, null, leftDbBean);
+			PageData pd = one2one(leftDbBean, otherDbBeans, conditions);
+			List<JsonBean> jsonBeans = findJsonBean(pd.getList(), null, null, null, leftDbBean);
 			for (JsonBean jsonBean : jsonBeans) {
 				for (DbBean dbBean : otherDbBeans) {
-					List<JsonBean> beans = findJsonBean(list, leftDbBean.getBeanName(), jsonBean.getId(), jsonBean.getIdVal(), dbBean);
-					if(beans!= null && beans.size()==1){
-						jsonBean.addField(dbBean.getBeanName(),beans.get(0));
+					List<JsonBean> beans = findJsonBean(pd.getList(), leftDbBean.getBeanName(), jsonBean.getId(), jsonBean.getIdVal(), dbBean);
+					if (beans != null && beans.size() == 1) {
+						jsonBean.addField(dbBean.getBeanName(), beans.get(0));
 					}
 				}
 			}
-			 
-			Long size = getSize(conditions);
+
+			long size = pd.getSize();
 			Page pager = new Page(pageNum, pageSize, size, jsonBeans);
 			return pager;
 
 		} else if (n == 3) { // 一对多
 
-			List<Map<String, Object>> list = one2Many(leftDbBean, otherDbBeans, conditions);
-			List<JsonBean> leftJsonBeans = findJsonBean(list, null, null, null, leftDbBean);
+			PageData pd = one2Many(leftDbBean, otherDbBeans, conditions);
+			List<JsonBean> leftJsonBeans = findJsonBean(pd.getList(), null, null, null, leftDbBean);
 			for (JsonBean leftJsonBean : leftJsonBeans) {
 				String id = leftJsonBean.getId();
 				Object idVal = leftJsonBean.getIdVal();
 				for (DbBean dbBean : otherDbBeans) {
-					List<JsonBean> otherJsonBeans = findJsonBean(list, leftDbBean.getBeanName(), id, idVal, dbBean);
+					List<JsonBean> otherJsonBeans = findJsonBean(pd.getList(), leftDbBean.getBeanName(), id, idVal, dbBean);
 					leftJsonBean.addField(dbBean.getBeanName(), otherJsonBeans);
 				}
 			}
 
-			Long size = getSize(conditions);
+			long size = pd.getSize();
 			Page pager = new Page(pageNum, pageSize, size, leftJsonBeans);
 			return pager;
 		} else if (n == 4) {// 多对多
@@ -149,26 +157,31 @@ public class JdbcDao {
 				}
 			}
 
-			String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM  + tableNames + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE + condition + where;
+			String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM + tableNames + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE + condition + where;
 			p.setReadySql(sql);
 			List<Map<String, Object>> list = jdbc.gets(p);
 
 			List<JsonBean> leftJsonBeans = findJsonBean(list, null, null, null, leftDbBean);
 			for (JsonBean jsonBean : leftJsonBeans) {
-				List<JsonBean> middleJsonBeans = findJsonBean(list, leftDbBean.getBeanName(), jsonBean.getId(),jsonBean.getIdVal(), middleDbBean);
+				List<JsonBean> middleJsonBeans = findJsonBean(list, leftDbBean.getBeanName(), jsonBean.getId(), jsonBean.getIdVal(), middleDbBean);
 				List<JsonBean> jsonBeans = new LinkedList<>();
 				for (JsonBean middleJsonBean : middleJsonBeans) {
 					List<JsonBean> rightJsonBeans = findJsonBean(list, middleDbBean.getBeanName(), middleJsonBean.getId(), middleJsonBean.getIdVal(), rightDbBean);
 					jsonBeans.addAll(rightJsonBeans);
-				
+
 				}
-				jsonBean.addField(rightDbBean.getBeanName(),jsonBeans);
+				jsonBean.addField(rightDbBean.getBeanName(), jsonBeans);
 			}
-			
-			Long size = getSize(conditions);
+			String sizeSql = SQL_KEY.SELECT + SQL_KEY.COUNT_START + SQL_KEY.AS + SQL_KEY.SIZE + SQL_KEY.FROM + tableNames + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE + condition + where;
+			Parameter sizeP = conditions.getWhereParameter();
+			sizeP.setReadySql(sizeSql);
+			Map<String, Object> map = jdbc.get(sizeP);
+			Long size = (Long) map.get(T2E.toField(SQL_KEY.SIZE));
+			if (size == null) {
+				size = 0L;
+			}
 			Page pager = new Page(pageNum, pageSize, size, leftJsonBeans);
-			
-			
+
 			return pager;
 		} else if (n == 5) {// 未知
 			return null;
@@ -177,142 +190,7 @@ public class JdbcDao {
 		}
 	}
 
-	/**
-	 * 一对多
-	 * @param leftDbBean
-	 * @param otherDbBeans
-	 * @param conditions
-	 * @return
-	 */
-	private List<Map<String, Object>> one2Many(DbBean leftDbBean, List<DbBean> otherDbBeans, Conditions conditions) {
-
-		String leftTableName = T2E.toTableName(leftDbBean.getBeanName());
-		String leftTablePk = T2E.toColumn(leftDbBean.getPrimaryField());
-		List<DbBean> newDbBeans = new ArrayList<>();
-		newDbBeans.add(leftDbBean);
-		newDbBeans.addAll(otherDbBeans);
-
-		String columns = ComSQL.columns(newDbBeans);
-		Parameter p = conditions.getWhereParameter();
-		String where = p.getReadySql();
-		String otherTableName = new String();
-		String condition = new String();
-		for (DbBean dbBean : otherDbBeans) {
-			String tableName = T2E.toTableName(dbBean.getBeanName());
-
-			otherTableName = otherTableName + STRING.SPACING + STRING.COMMA + STRING.SPACING + tableName + STRING.SPACING;
-			List<ForeignKey> fkes = dbBean.getForeignKeies();
-			for (ForeignKey f : fkes) {
-				if (f.getReferDbBeanName().toUpperCase().equals(leftTableName.toUpperCase())) {
-					String fk = T2E.toColumn(f.getForeignProperty());
-					condition = condition + SQL_KEY.AND + tableName + STRING.POINT + fk + STRING.SPACING + STRING.EQ + STRING.SPACING + leftTableName + STRING.POINT + leftTablePk + STRING.SPACING;
-
-				}
-			}
-		}
-		String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM + leftTableName + otherTableName + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE + condition + where;
-		p.setReadySql(sql);
-		List<Map<String, Object>> list = jdbc.gets(p);
-		return list;
-	}
-	/**
-	 * 一对一
-	 * @param leftDbBean
-	 * @param otherDbBeans
-	 * @param conditions
-	 * @return
-	 */
-	private List<Map<String, Object>> one2one(DbBean leftDbBean, List<DbBean> otherDbBeans, Conditions conditions) {
-		
-		String leftTableName = T2E.toTableName(leftDbBean.getBeanName());
-	 
-		List<DbBean> newDbBeans = new ArrayList<>();
-		newDbBeans.add(leftDbBean);
-		newDbBeans.addAll(otherDbBeans);
-		
-		String columns = ComSQL.columns(newDbBeans);
-		Parameter p = conditions.getWhereParameter();
-		String where = p.getReadySql();
-		String otherTableNames = new String();
-		String condition = new String();
-		 
-		
-		List<ForeignKey> leftPkes = leftDbBean.getForeignKeies();
-		int n = 0;
-		for (ForeignKey fk : leftPkes) {
-			String fkName = T2E.toColumn( fk.getForeignProperty());
-			String referTableName = T2E.toTableName(  fk.getReferDbBeanName());
-			for (DbBean dbBean : otherDbBeans) {
-				String otherTableName =T2E.toTableName(dbBean.getBeanName()) ;
-				if(n==0){
-					otherTableNames = otherTableNames + STRING.SPACING + STRING.COMMA + STRING.SPACING + otherTableName + STRING.SPACING;
-				}
-				String otherTablePkName = T2E.toColumn( dbBean.getPrimaryField() );
-				
-				if(referTableName.equals(otherTableName)){
-					condition = condition + SQL_KEY.AND + leftTableName + STRING.POINT + fkName + STRING.SPACING + STRING.EQ + STRING.SPACING + otherTableName + STRING.POINT + otherTablePkName + STRING.SPACING;
-				}
-				
-			}
-			n++;
-		}
-		
-		String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM + leftTableName + otherTableNames + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE + condition + where;
-		p.setReadySql(sql);
-		List<Map<String, Object>> list = jdbc.gets(p);
-		return list;
-	}
-
-	private List<JsonBean> findJsonBean(List<Map<String, Object>> list, String mainBeanName, String id, Object idVal, DbBean dbBean) {
-		if (id != null && idVal != null) {
-			List<Map<String, Object>> newlist = new LinkedList<>();
-			for (Map<String, Object> map : list) {
-				Object thisVal = map.get(mainBeanName + STRING.DOLLAR + id);
-				if (thisVal.toString().equals(idVal.toString())) {
-					newlist.add(map);
-				}
-			}
-			list = newlist;
-		}
-
-		String dbBeanName = dbBean.getBeanName();
-		String pkName = dbBean.getPrimaryField();
-		List<JsonBean> jsonBeans = new LinkedList<>();
-		String str = new String();
-		for (Map<String, Object> map : list) {
-			JsonBean jsonBean = new JsonBean();
-			for (Entry<String, Object> en : map.entrySet()) {
-				String key = en.getKey();
-				Object val = en.getValue();
-				String[] strs = key.split(STRING.ESCAPE_DOLLAR);
-				if (strs.length > 0) {
-					String beanName = strs[0];
-					String pr = strs[1];
-
-					if (dbBeanName.toUpperCase().equals(beanName.toUpperCase())) {
-						jsonBean.addField(pr, val);
-						if (pkName.toUpperCase().equals(pr.toUpperCase())) {
-							jsonBean.setId(pkName);
-							jsonBean.setIdVal(val);
-						}
-					}
-				}
-			}
-			if (jsonBeans.size() == 0) {
-				jsonBeans.add(jsonBean);
-				str = str + jsonBean.getIdVal().toString() + STRING.AT;
-			} else {
-				if (!str.contains(jsonBean.getIdVal().toString())) {
-					jsonBeans.add(jsonBean);
-					str = str + jsonBean.getIdVal().toString() + STRING.AT;
-				}
-			}
-
-		}
-
-		return jsonBeans;
-
-	}
+	
 
 	public long save(JsonBean jsonBean) {
 		DbBean cb = DbBeanCache.getDbBean(dbKey, jsonBean);
@@ -399,19 +277,6 @@ public class JdbcDao {
 
 	}
 
-	/**
-	 * 获取查询长度
-	 * 
-	 * @param left
-	 * @param others
-	 * @return
-	 */
-	private long getSize(Conditions conditions) {
-
-		return 0;
-
-	}
-
 	public List<JsonBean> gets(Conditions conditions) {
 
 		DbBean cb = DbBeanCache.getDbBean(dbKey, conditions.getLeftBean());
@@ -440,18 +305,181 @@ public class JdbcDao {
 	 * @return 单表 ：1 ; 一对一：2 一对多：3 ; 多对多：4 ;未知 ：5
 	 */
 	private int getRelation(DbBean leftDbBean, DbBean... otherBeans) {
-     if(TableRelationAnalyze.isOne(leftDbBean, otherBeans)){
-    	 return 1;
-     }else if(TableRelationAnalyze.isOne2One(leftDbBean, otherBeans)){
-    	 return 2;
-     }else if(TableRelationAnalyze.isOne2Many(leftDbBean, otherBeans)){
-    	 return 3;
-     }else if (TableRelationAnalyze.isMany2Many(leftDbBean, otherBeans)){
-    	 return 4;
-     }else{
-    	 return 5;
-     }
-		 
+		if (TableRelationAnalyze.isOne(leftDbBean, otherBeans)) {
+			return 1;
+		} else if (TableRelationAnalyze.isOne2One(leftDbBean, otherBeans)) {
+			return 2;
+		} else if (TableRelationAnalyze.isOne2Many(leftDbBean, otherBeans)) {
+			return 3;
+		} else if (TableRelationAnalyze.isMany2Many(leftDbBean, otherBeans)) {
+			return 4;
+		} else {
+			return 5;
+		}
+
+	}
+
+	private List<JsonBean> findJsonBean(List<Map<String, Object>> list, String mainBeanName, String id, Object idVal, DbBean dbBean) {
+		if (id != null && idVal != null) {
+			List<Map<String, Object>> newlist = new LinkedList<>();
+			for (Map<String, Object> map : list) {
+				Object thisVal = map.get(mainBeanName + STRING.DOLLAR + id);
+				if (thisVal.toString().equals(idVal.toString())) {
+					newlist.add(map);
+				}
+			}
+			list = newlist;
+		}
+
+		String dbBeanName = dbBean.getBeanName();
+		String pkName = dbBean.getPrimaryField();
+		List<JsonBean> jsonBeans = new LinkedList<>();
+		String str = new String();
+		for (Map<String, Object> map : list) {
+			JsonBean jsonBean = new JsonBean();
+			for (Entry<String, Object> en : map.entrySet()) {
+				String key = en.getKey();
+				Object val = en.getValue();
+				String[] strs = key.split(STRING.ESCAPE_DOLLAR);
+				if (strs.length > 0) {
+					String beanName = strs[0];
+					String pr = strs[1];
+
+					if (dbBeanName.toUpperCase().equals(beanName.toUpperCase())) {
+						jsonBean.addField(pr, val);
+						if (pkName.toUpperCase().equals(pr.toUpperCase())) {
+							jsonBean.setId(pkName);
+							jsonBean.setIdVal(val);
+						}
+					}
+				}
+			}
+			if (jsonBeans.size() == 0) {
+				jsonBeans.add(jsonBean);
+				str = str + jsonBean.getIdVal().toString() + STRING.AT;
+			} else {
+				if (!str.contains(jsonBean.getIdVal().toString())) {
+					jsonBeans.add(jsonBean);
+					str = str + jsonBean.getIdVal().toString() + STRING.AT;
+				}
+			}
+
+		}
+
+		return jsonBeans;
+
+	}
+	
+	/**
+	 * 一对多
+	 * 
+	 * @param leftDbBean
+	 * @param otherDbBeans
+	 * @param conditions
+	 * @return
+	 */
+	private PageData one2Many(DbBean leftDbBean, List<DbBean> otherDbBeans, Conditions conditions) {
+		PageData pd = new PageData();
+		String leftTableName = T2E.toTableName(leftDbBean.getBeanName());
+		String leftTablePk = T2E.toColumn(leftDbBean.getPrimaryField());
+		List<DbBean> newDbBeans = new ArrayList<>();
+		newDbBeans.add(leftDbBean);
+		newDbBeans.addAll(otherDbBeans);
+
+		String columns = ComSQL.columns(newDbBeans);
+		Parameter p = conditions.getWhereParameter();
+		String where = p.getReadySql();
+		String otherTableName = new String();
+		String condition = new String();
+		for (DbBean dbBean : otherDbBeans) {
+			String tableName = T2E.toTableName(dbBean.getBeanName());
+
+			otherTableName = otherTableName + STRING.SPACING + STRING.COMMA + STRING.SPACING + tableName + STRING.SPACING;
+			List<ForeignKey> fkes = dbBean.getForeignKeies();
+			for (ForeignKey f : fkes) {
+				if (f.getReferDbBeanName().toUpperCase().equals(leftTableName.toUpperCase())) {
+					String fk = T2E.toColumn(f.getForeignProperty());
+					condition = condition + SQL_KEY.AND + tableName + STRING.POINT + fk + STRING.SPACING + STRING.EQ + STRING.SPACING + leftTableName + STRING.POINT + leftTablePk + STRING.SPACING;
+
+				}
+			}
+		}
+		String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM + leftTableName + otherTableName + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE + condition + where;
+		p.setReadySql(sql);
+		List<Map<String, Object>> list = jdbc.gets(p);
+		pd.setList(list);
+
+		String sizeSql = SQL_KEY.SELECT + SQL_KEY.COUNT_START + SQL_KEY.AS + SQL_KEY.SIZE + SQL_KEY.FROM + leftTableName + otherTableName + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE + condition + where;
+		Parameter sizeP = conditions.getWhereParameter();
+		sizeP.setReadySql(sizeSql);
+		Map<String, Object> map = jdbc.get(sizeP);
+		Long size = (Long) map.get(T2E.toField(SQL_KEY.SIZE));
+		if (size != null) {
+			pd.setSize(size);
+		} else {
+			pd.setSize(0);
+		}
+		return pd;
+	}
+
+	/**
+	 * 一对一
+	 * 
+	 * @param leftDbBean
+	 * @param otherDbBeans
+	 * @param conditions
+	 * @return
+	 */
+	private PageData one2one(DbBean leftDbBean, List<DbBean> otherDbBeans, Conditions conditions) {
+		PageData pd = new PageData();
+		String leftTableName = T2E.toTableName(leftDbBean.getBeanName());
+
+		List<DbBean> newDbBeans = new ArrayList<>();
+		newDbBeans.add(leftDbBean);
+		newDbBeans.addAll(otherDbBeans);
+
+		String columns = ComSQL.columns(newDbBeans);
+		Parameter p = conditions.getWhereParameter();
+		String where = p.getReadySql();
+		String otherTableNames = new String();
+		String condition = new String();
+
+		List<ForeignKey> leftPkes = leftDbBean.getForeignKeies();
+		int n = 0;
+		for (ForeignKey fk : leftPkes) {
+			String fkName = T2E.toColumn(fk.getForeignProperty());
+			String referTableName = T2E.toTableName(fk.getReferDbBeanName());
+			for (DbBean dbBean : otherDbBeans) {
+				String otherTableName = T2E.toTableName(dbBean.getBeanName());
+				if (n == 0) {
+					otherTableNames = otherTableNames + STRING.SPACING + STRING.COMMA + STRING.SPACING + otherTableName + STRING.SPACING;
+				}
+				String otherTablePkName = T2E.toColumn(dbBean.getPrimaryField());
+
+				if (referTableName.equals(otherTableName)) {
+					condition = condition + SQL_KEY.AND + leftTableName + STRING.POINT + fkName + STRING.SPACING + STRING.EQ + STRING.SPACING + otherTableName + STRING.POINT + otherTablePkName + STRING.SPACING;
+				}
+
+			}
+			n++;
+		}
+
+		String sql = SQL_KEY.SELECT + columns + SQL_KEY.FROM + leftTableName + otherTableNames + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE + condition + where;
+		p.setReadySql(sql);
+		List<Map<String, Object>> list = jdbc.gets(p);
+		pd.setList(list);
+
+		String sizeSql = SQL_KEY.SELECT + SQL_KEY.COUNT_START + SQL_KEY.AS + SQL_KEY.SIZE + SQL_KEY.FROM + leftTableName + otherTableNames + SQL_KEY.WHERE + SQL_KEY.ONE_EQ_ONE + condition + where;
+		Parameter sizeP = conditions.getWhereParameter();
+		sizeP.setReadySql(sizeSql);
+		Map<String, Object> map = jdbc.get(sizeP);
+		Long size = (Long) map.get(T2E.toField(SQL_KEY.SIZE));
+		if (size != null) {
+			pd.setSize(size);
+		} else {
+			pd.setSize(0);
+		}
+		return pd;
 	}
 
 }

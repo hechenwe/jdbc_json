@@ -1,4 +1,4 @@
-package com.sooncode.jdbc.cglib;
+package com.sooncode.jdbc.bean;
 
  
 
@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.sooncode.jdbc.db.DBs;
-import com.sooncode.jdbc.json.JsonBean;
  
  
 

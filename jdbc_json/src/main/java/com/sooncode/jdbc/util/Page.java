@@ -4,7 +4,7 @@ package com.sooncode.jdbc.util;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sooncode.jdbc.json.JsonBean;
+import com.sooncode.jdbc.bean.JsonBean;
 
 /**
  * 分页
@@ -175,6 +175,11 @@ public class Page   {
 
 	public void setJsonBeans(List<JsonBean> jsonBeans) {
 		this.jsonBeans = jsonBeans;
+	}
+
+	@Override
+	public String toString() {
+		return "Page [jsonBeans=" + jsonBeans + ", total=" + total + ", pageSize=" + pageSize + ", totalPages=" + totalPages + ", pageNumber=" + pageNumber + "]";
 	}
 
 	 

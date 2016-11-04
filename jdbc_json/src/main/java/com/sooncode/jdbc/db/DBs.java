@@ -19,8 +19,8 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 
-import com.sooncode.jdbc.cglib.ForeignKey;
-import com.sooncode.jdbc.cglib.Index;
+import com.sooncode.jdbc.bean.ForeignKey;
+import com.sooncode.jdbc.bean.Index;
 import com.sooncode.jdbc.constant.DATA;
 import com.sooncode.jdbc.constant.STRING;
 import com.sooncode.jdbc.util.T2E;

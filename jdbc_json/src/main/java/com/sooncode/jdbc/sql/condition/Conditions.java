@@ -6,10 +6,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import com.sooncode.jdbc.bean.JsonBean;
 import com.sooncode.jdbc.constant.SQL_KEY;
 import com.sooncode.jdbc.constant.STRING;
-import com.sooncode.jdbc.json.JsonBean;
- 
 import com.sooncode.jdbc.sql.Parameter;
 import com.sooncode.jdbc.sql.condition.sign.Sign;
 import com.sooncode.jdbc.util.T2E;

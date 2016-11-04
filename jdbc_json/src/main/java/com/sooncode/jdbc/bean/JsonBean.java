@@ -1,4 +1,4 @@
-package com.sooncode.jdbc.json;
+package com.sooncode.jdbc.bean;
 
  
  
@@ -7,18 +7,29 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import com.sooncode.jdbc.json.SJson;
+
 import java.util.TreeMap;
 
  
 
 public class JsonBean {
+	
+	
 	private String beanName;
+	
+	
 	/***
-	 * 唯一标识
+	 * 唯一标识字段
 	 */
     private String id;
     
+    
+    /**标识字段对应的值*/
     private Object idVal;
+    
+    
 	private Map<String, Object> map = new LinkedHashMap<>();
 
 	public JsonBean(){
@@ -46,15 +57,17 @@ public class JsonBean {
 			this.beanName = string;
 		}
 	}
+	
+	
+	public void addField(JsonBean jsonBean) {
+		if (jsonBean != null ) {
+			this.addField(jsonBean.getBeanName(), jsonBean.getFields());
+		}
+	}
 
 	public void addField(String key, Object value) {
 		if (key != null && !key.trim().equals("") && value != null) {
 			map.put(key, value);
-		}
-	}
-	public void addField(JsonBean jsonBean) {
-		if (jsonBean != null ) {
-		    this.addField(jsonBean.getBeanName(), jsonBean.getFields());
 		}
 	}
 	

@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import org.junit.Test;
 
 import com.mysql.jdbc.AbandonedConnectionCleanupThread;
+import com.sooncode.jdbc.bean.JsonBean;
 
 public class JsonBean__Test {
 	private static Logger logger = Logger.getLogger("JsonBean__Test.class");

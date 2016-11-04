@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.sooncode.jdbc.cglib.DbBean;
+import com.sooncode.jdbc.bean.DbBean;
 import com.sooncode.jdbc.constant.CLASS_NAME;
 import com.sooncode.jdbc.constant.DATE_FORMAT;
 import com.sooncode.jdbc.constant.SQL_KEY;

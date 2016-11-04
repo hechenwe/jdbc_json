@@ -23,6 +23,7 @@ public static final String  LIMIT = STRING.SPACING+"LIMIT"+STRING.SPACING;
 public static final String  VALUES = STRING.SPACING+"VALUES"+STRING.SPACING;
 public static final String  SET = STRING.SPACING+"SET"+STRING.SPACING;
 public static final String  COUNT = "COUNT(1)";
+public static final String  COUNT_START = " COUNT(*) ";
 public static final String  SIZE = "SIZE";
 public static final String  LIKE = "LIKE";
 public static final String  DATE_FORMAT = "DATE_FORMAT";

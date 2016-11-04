@@ -1,4 +1,4 @@
-package com.sooncode.jdbc.cglib;
+package com.sooncode.jdbc.bean;
 
 import java.util.List;
 import java.util.Map;
