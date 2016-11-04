@@ -10,6 +10,7 @@ import com.sooncode.jdbc.bean.JsonBean;
 import com.sooncode.jdbc.constant.SQL_KEY;
 import com.sooncode.jdbc.constant.STRING;
 import com.sooncode.jdbc.sql.Parameter;
+import com.sooncode.jdbc.sql.condition.sign.LikeSign;
 import com.sooncode.jdbc.sql.condition.sign.Sign;
 import com.sooncode.jdbc.util.T2E;
 
@@ -275,36 +276,36 @@ public class Conditions {
 					String sign = c.getConditionSign();
 					String newSign = sign;// Sign.Signmap.get(sign);
 					newSign = newSign == null ? SQL_KEY.EQ : newSign; // 如果字段不为空，但是没有条件符号，默认使用等值查询"="。
-					if (newSign.equals(SQL_KEY.LIKE)) {
+					if (newSign.contains(SQL_KEY.LIKE)) {
 						sql = sql + SQL_KEY.AND + con + STRING.SPACING + SQL_KEY.LIKE + STRING.SPACING + STRING.QUESTION;// "
-																										// AND
-																										// LIKE
-																										// ?";
-						para.put(index, STRING.PERCENT + c.getVal() + STRING.PERCENT);
-						index++;
-					} else if (sign != null && sign.equals(SQL_KEY.IN)) {
+						if(newSign.equals(SQL_KEY.LIKE)){
+							para.put(index, STRING.PERCENT + c.getVal() + STRING.PERCENT);
+							index++;
+						}else if (newSign.equals(LikeSign.L_LIKE.toString())){
+							para.put(index,  c.getVal() + STRING.PERCENT);
+							index++;
+						}else  {
+							para.put(index, STRING.PERCENT+ c.getVal());
+							index++;
+						}
+						
+					}else if (sign != null && sign.equals(SQL_KEY.IN)) {
 
 						String vales = SQL_KEY.L_BRACKET;// "(";
 						for (int i = 0; i < c.getVales().length; i++) {
 							if (i != 0) {
-								vales = vales + STRING.SPACING + STRING.COMMA + STRING.QUESTION + STRING.SPACING;// "
-																													// ,?
-																													// ";
-
+								vales = vales + STRING.SPACING + STRING.COMMA + STRING.QUESTION + STRING.SPACING; 
 							} else {
-								vales = vales + STRING.QUESTION + STRING.SPACING;// "?
-																					// ";
+								vales = vales + STRING.QUESTION + STRING.SPACING; 
 							}
 							para.put(index, c.getVales()[i]);
 							index++;
 						}
 						vales = vales + SQL_KEY.R_BRACKET + STRING.SPACING;// ")
-																			// ";
 						sql = sql + SQL_KEY.AND + con + STRING.SPACING + SQL_KEY.IN + vales;
 					}
-
 					else {
-						sql = sql + SQL_KEY.AND + con + STRING.SPACING + newSign + STRING.QUESTION;// "?";
+						sql = sql + SQL_KEY.AND + con + STRING.SPACING + newSign + STRING.SPACING + STRING.QUESTION;// "?";
 						para.put(index, c.getVal());
 						index++;
 					}

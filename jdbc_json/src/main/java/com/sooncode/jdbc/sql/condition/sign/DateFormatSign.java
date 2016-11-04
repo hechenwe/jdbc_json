@@ -7,8 +7,7 @@ package com.sooncode.jdbc.sql.condition.sign;
  *
  */
 public class DateFormatSign extends Sign {
-	private String dateFormatString;
-	private String date ;
+	 
 	
 	
 	/**

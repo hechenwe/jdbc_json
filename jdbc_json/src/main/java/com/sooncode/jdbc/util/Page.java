@@ -13,7 +13,7 @@ import com.sooncode.jdbc.bean.JsonBean;
  *
  * @param <T>
  */
-public class Page   {
+public class Page {
 	
 	//------------------------------------------ 属性 --------------------------------------------------------
 	
@@ -58,10 +58,7 @@ public class Page   {
 		}
 	}
 	
-	/*public Page(long pageNumber, long pageSize, long total, JsonBean jsonBean) {
-		init( total ,pageNumber, pageSize);
-		this.jsonBean = jsonBean;
-	}*/
+	 
 
 	/** 设置基本参数 */
 	private void init(long total, long pageNumber, long pageSize) {
@@ -177,18 +174,21 @@ public class Page   {
 		this.jsonBeans = jsonBeans;
 	}
 
-	@Override
-	public String toString() {
-		return "Page [jsonBeans=" + jsonBeans + ", total=" + total + ", pageSize=" + pageSize + ", totalPages=" + totalPages + ", pageNumber=" + pageNumber + "]";
+	public String getJson(){
+		JsonBean jb = new JsonBean();
+		jb.addField("pageNumber",this.pageNumber);
+		jb.addField("pageSize",this.pageSize);
+		jb.addField("total",this.total);
+		jb.addField("totalPages",this.totalPages);
+		jb.addField("hasNextPage",this.hasNextPage);
+		jb.addField("hasPreviousPage",this.hasPreviousPage);
+		jb.addField("isFirstPage",this.isFirstPage);
+		jb.addField("isLastPage",this.isLastPage);
+		jb.addField("datas",this.jsonBeans);
+		
+		return jb.getJson();
+		
 	}
-
-	 
- 
-
-	 
-
- //--------------------------------------------------------------------------------------------------------------------------------
-
 	
 	
 }

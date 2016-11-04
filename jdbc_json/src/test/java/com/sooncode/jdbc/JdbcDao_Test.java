@@ -1,5 +1,6 @@
 package com.sooncode.jdbc;
  
+import java.nio.file.LinkOption;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -21,12 +22,14 @@ public class JdbcDao_Test {
 	private JdbcDao jdbcDao = JdbcDaoFactory.getJdbcDao();
 	@Test
 	public void save(){
-	   String json = "{\"teacher\":{\"createDate\":\"2016-10-26 14:15:22\",\"teacherName\":\"hechen\",\"clazzId\":\"001\",\"sex\":\"1\"}}";
+	   String json = "{\"teacher\":{\"createDate\":\"2016-10-26 14:15:22\",\"teacherName\":\"hechen\",\"clazzId\":\"001\",\"sex\":\"1\",\"hight\":34}}";
 		JsonBean  t = new JsonBean(json);
 		t.updateField("createDate", new Date());
 		t.addField("teacherAge", 45);
 		t.addField("address", "beijing");
+		t.updateField("hight", (int)t.getField("hight")+1);
 		t.updateField("teacherName", "TOM");
+		t.removeField("sex");
 		Long b = jdbcDao.save(t);
 		logger.info(b);
 		
@@ -98,12 +101,13 @@ public class JdbcDao_Test {
 	 
 	@Test 
 	public void get(){
-		String json = "{\"teacher\":{\"teacherName\":\"TOM\"}}";
+		String json = "{\"teacher\":{\"teacherName\":\"hechen2\"}}";
 		JsonBean j = new JsonBean(json);
 		Conditions c = new Conditions(j);
 		//c.setCondition("teacherName", EqualSign.NOT_EQ);
 		c.setOderBy("clazzId", Sort.ASC);
 		List<JsonBean> list = jdbcDao.gets(c);
+		list.get(0).removeField("teacherName");
 		logger.info(list);
 	}
 	
@@ -134,11 +138,12 @@ public class JdbcDao_Test {
 		
 		JsonBean clazz = new JsonBean("clazz");
 		JsonBean student = new JsonBean("student");
-		student.addField("name","hechen");
+		//student.addField("name","hechen");
 		JsonBean teacher = new JsonBean("teacher");
+		teacher.addField("teacherName","he");
 		Conditions c = new Conditions(clazz,student,teacher);
-		c.setCondition("student.name", LikeSign.LIKE);
-	    c.setOderBy("teacher.clazzId", Sort.ASC);
+		//c.setCondition("student.name", LikeSign.LIKE);
+	    c.setCondition("teacher.teacherName", LikeSign.L_LIKE);
 		Page page = jdbcDao.getPage(1L,1L,c);
 		logger.info(page.getJsonBeans());
 	}
@@ -170,7 +175,7 @@ public class JdbcDao_Test {
 		c.setCondition("student.name", LikeSign.LIKE);
 		c.setCondition("chooseCourse.score", EqualSign.GTEQ);
 		Page page = jdbcDao.getPage(1L,1L,c);
-		logger.info(page.getJsonBeans());
+		logger.info(page.getJson());
 	}
 	
 	
