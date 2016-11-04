@@ -144,7 +144,7 @@ public class JdbcDao_Test {
 		logger.info(page.getJsonBeans());
 	}
 	@Test 
-	public void getPage5(){  //1对多
+	public void getPage5(){  //1对1
 		
 		JsonBean student = new JsonBean("student");
 		student.addField("name","hechen");

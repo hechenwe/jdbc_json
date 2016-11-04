@@ -3,6 +3,8 @@ package com.sooncode.jdbc.util;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.log4j.chainsaw.Main;
+
 import com.sooncode.jdbc.constant.STRING;
 
  
@@ -133,6 +135,8 @@ public class T2E {
 		}
 	}
 
-	 
+	 public static void main(String[] args) {
+		System.out.println( toField("CLASS_ID") );
+	}
 
 }

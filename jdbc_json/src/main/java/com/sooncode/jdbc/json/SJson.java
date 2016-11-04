@@ -1,7 +1,7 @@
 package com.sooncode.jdbc.json;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +31,12 @@ public class SJson {
 		this.jObj = new JSONObject();
 	}
     
+	public SJson(Object obj){
+		jObj = JSONObject.fromObject(obj);
+		json = jObj.toString();
+		
+	}
+	
 	/**
 	 * SJson 构造器
 	 * 
@@ -124,7 +130,7 @@ public class SJson {
 	 * @return List<Map<String, Object>>
 	 */
 	public List<Map<String, Object>> getList() {
-		List<Map<String, Object>> list = new ArrayList<>();
+		List<Map<String, Object>> list = new LinkedList<>();
 		if (jArray != null) {
 			for (int i = 0; i < jArray.size(); i++) {
 				JSONObject jb = jArray.getJSONObject(i);

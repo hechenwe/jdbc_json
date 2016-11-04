@@ -1,12 +1,15 @@
 package com.sooncode.jdbc.json;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+ 
+ 
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
-import com.sooncode.jdbc.constant.STRING;
+ 
 
 public class JsonBean {
 	private String beanName;
@@ -16,7 +19,7 @@ public class JsonBean {
     private String id;
     
     private Object idVal;
-	private Map<String, Object> map = new HashMap<>();
+	private Map<String, Object> map = new LinkedHashMap<>();
 
 	public JsonBean(){
 		
@@ -58,7 +61,7 @@ public class JsonBean {
 	
 	public void addField( String key, List<JsonBean> jsonBeans) {
 		if (jsonBeans != null && jsonBeans.size()>0 ) {
-			List<Map<String,Object>> list = new ArrayList<>();
+			List<Map<String,Object>> list = new LinkedList<>();
 			for (JsonBean j : jsonBeans) {
 				list.add(j.getFields());
 			}
@@ -112,7 +115,7 @@ public class JsonBean {
 		SJson sBean = new SJson(map);
 		String jsonString = new String();
 		if(this.beanName!=null){
-		Map<String, Object> newMap = new HashMap<>();
+		Map<String, Object> newMap = new TreeMap <>();
 		newMap.put(beanName, sBean.getJsonString());
 		jsonString = new SJson(newMap).getJsonString();
 		
