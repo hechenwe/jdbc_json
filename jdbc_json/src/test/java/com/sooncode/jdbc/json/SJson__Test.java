@@ -2,6 +2,7 @@ package com.sooncode.jdbc.json;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -60,11 +61,33 @@ public class SJson__Test {
     	newJ2.addFields("name", "hechen");
     	newJ.addFields("mao", newJ2);
     	
+    	List<SJson> list = new LinkedList<>();
+    	
+    	SJson s1 = new SJson();
+    	s1.addFields("age", 12);
+    	SJson s2 = new SJson();
+    	s2.addFields("age", 22);
+    	list.add(s1);
+    	list.add(s2);
+    	
     	s.addFields("dog", newJ);
+    	s.addFields("mous", list);
+    	logger.info(s.getJsonString());
+    	s.removeFields("id");
+    	logger.info(s.getJsonString());
+    	s.removeFields("dog.id");
     	logger.info(s.getJsonString());
     	s.removeFields("dog.mao.id");
     	logger.info(s.getJsonString());
     	
+    	s.removeFields("dog.mao.name");
+    	logger.info(s.getJsonString());
+    	
+    	s.removeFields("dog.mao");
+    	logger.info(s.getJsonString());
+    	
+    	s.removeFields("dog");
+    	logger.info(s.getJsonString());
     	
     }
     

@@ -16,16 +16,15 @@ import net.sf.json.JSONObject;
 public class SJson {
 
 	private static final String DATE_FORMAT = "yyyy-MM-dd H:m:s";
-	/**
-	 * json 格式的字符串
-	 */
-	private String json;
+	 
+	 
 	/**
 	 * JSONObject 对象
 	 */
 	private JSONObject jObj;
 	
 	private Map<String,SJson> map = new LinkedHashMap<>();
+	private Map<String,List<SJson>> array = new LinkedHashMap<>();
 	
 	/**
 	 * JSONArray 数组
@@ -40,7 +39,7 @@ public class SJson {
     
 	public SJson(Object obj){
 		jObj = JSONObject.fromObject(obj);
-		json = jObj.toString();
+		 
 		
 	}
 	
@@ -66,7 +65,7 @@ public class SJson {
 				}
 			}
 			this.jArray = jArray;
-			this.json = jArray.toString();
+			 
 		} else if (isJson(jsonString)) {
 			{
 				JSONObject jb = JSONObject.fromObject(jsonString);
@@ -74,7 +73,7 @@ public class SJson {
 				Map<String, Object> map = jb;
 				JSONObject jObj = getJSONObject(map);
 				this.jObj = jObj;
-				this.json = jObj.toString();
+			 
 			}
 		}else{
 			this.isJson = false;
@@ -91,7 +90,7 @@ public class SJson {
 	public SJson(Map<String, Object> map) {
 		JSONObject jObj = getJSONObject(map);
 		this.jObj = jObj;
-		this.json = jObj.toString();
+		 
 	}
 
 	/**
@@ -109,7 +108,7 @@ public class SJson {
 			}
 		}
 		this.jArray = jArray;
-		this.json = jArray.toString();
+		 
 
 	}
 
@@ -160,7 +159,6 @@ public class SJson {
 	public void addFields(String key, Object value) {
 		if (key != null && value != null && !key.trim().equals("")) {
 			this.jObj.accumulate(key, value);
-			this.json = this.jObj.toString();
 		}
 	}
 	
@@ -168,61 +166,22 @@ public class SJson {
 	public void addFields(String key, SJson sJson) {
 		if (key != null && sJson != null && !key.trim().equals("")) {
 			this.map.put(key, sJson);
-			this.update(this);
+			 
 		}
 	}
 	
-	private SJson update(SJson sJson){
-		JSONObject jo = sJson.jObj;
-		for (Entry<String, SJson> en : sJson.map.entrySet()) {
-			String key = en.getKey();
-			SJson s = en.getValue();
-			jo.remove(key);
-			jo.accumulate(key, s.toString());
-		}
-		sJson.jObj = jo;
-		sJson.json= jo.toString();
-		return sJson;
-	}
-
-	/**
-	 * 添加对象
-	 * 
-	 * @param key
-	 *            对象名称
-	 * @param map
-	 *            Map 对象
-	 */
-	public void addObject(String key, Map<String, Object> map) {
-		if (key != null && map != null && map.size() > 0) {
-			JSONObject jb = getJSONObject(map);
-			this.jObj.accumulate(key, jb);
-			this.json = this.jObj.toString();
-		}
-	}
-
 	/**
 	 * 添加数组
-	 * 
 	 * @param key
-	 *            数组名称
-	 * @param list
-	 *            数组
+	 * @param sJsons
 	 */
-	public void addArray(String key, List<Map<String, Object>> list) {
-		JSONArray ja = new JSONArray();
-		if (key != null && list != null && list.size() > 0) {
-			for (Map<String, Object> map : list) {
-				JSONObject jb = getJSONObject(map);
-				ja.add(jb);
-			}
-			this.jObj.accumulate(key, ja);
-			this.json = this.jObj.toString();
+	public void addFields(String key, List<SJson> sJsons) {
+		if (key != null && sJsons != null && sJsons.size()>0 && !key.trim().equals("")) {
+			this.array.put(key, sJsons);
+			
 		}
 	}
-
 	 
-
 	 
 
 	/**
@@ -233,7 +192,7 @@ public class SJson {
 	 * @return 值
 	 */
 	public Object getFields(String key) {
-		Object obj = this.getValue(this.json, key);
+		Object obj = this.getValue(this.getJsonString(), key);
 		return obj;
 	}
 
@@ -390,50 +349,27 @@ public class SJson {
 		remove(null,this,null, key);
 	}
 	
-	public SJson remove(SJson lastSJson , SJson sJson,String lastKey, String key){
-		 String[] keys = key.split(STRING.ESCAPE_POINT);
+	private SJson remove(SJson lastSJson , SJson sJson,String lastKey, String key){
+		String[] keys = key.split(STRING.ESCAPE_POINT);
 		if(keys.length==1){
+			String thisKey = keys[0];
 			JSONObject j = sJson.jObj;
-			j.remove(keys[0]);
-			sJson = update(sJson);
+			j.remove(thisKey);
+			sJson.map.remove(thisKey);
 			if(lastSJson!=null && lastKey != null){
 				lastSJson.map.remove(lastKey);
 				lastSJson.map.put(lastKey, sJson);
-				return update(lastSJson);
 			}
-			return sJson;
+			return lastSJson;
 		}else{
-			String thisKey = new String();
-			for (int i = 1;i<keys.length;i++) {
-				if(i==1){
-					thisKey = thisKey + keys[i];
-				}else{
-					thisKey = thisKey +STRING.POINT + keys[i];
-				}
-			}
-		    SJson s = sJson.map.get(keys[0]);
-		    SJson updateS = remove(sJson,s,keys[0], thisKey);
+			String lKey = keys[0];
+			String thisKey = key.replace(lKey+".", "");
+		    SJson s = sJson.map.get(lKey);
+		    SJson updateS = remove(sJson,s,lKey, thisKey);
 			return updateS;
 		}
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	public String getJson() {
-		return json;
-	}
-
-	public void setJson(String json) {
-		this.json = json;
-	}
-
+  
 	public JSONObject getjObj() {
 		return jObj;
 	}
@@ -456,9 +392,35 @@ public class SJson {
 	 * @return
 	 */
 	public String getJsonString() {
-		return this.json;
+		 
+		return getJson(this).toString(); 
 	}
 
+	
+	private JSONObject getJson(SJson sJson){
+		if(sJson.map.size()==0){
+			return sJson.jObj;
+		}else{
+			JSONObject jObj = JSONObject.fromObject(sJson.jObj.toString());
+			for(Entry<String, SJson>en:sJson.map.entrySet()){
+				String key = en.getKey();
+				SJson s = en.getValue();
+				jObj.accumulate(key, getJson(s));
+			}
+			for(Entry<String,List<SJson>> en : sJson.array.entrySet()){
+				String key = en.getKey();
+				List<SJson> list = en.getValue();
+				List<JSONObject> jObjs = new LinkedList<>();
+				for (SJson s : list) {
+					jObjs.add(s.jObj);
+				}
+				jObj.accumulate(key, jObjs);
+			}
+			return jObj;
+		}
+	}
+	
+	
 	public String toString() {
 		return this.getJsonString();
 	}
