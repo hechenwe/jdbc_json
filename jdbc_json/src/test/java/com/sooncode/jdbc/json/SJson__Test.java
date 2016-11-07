@@ -50,6 +50,7 @@ public class SJson__Test {
 	public void remove(){
     	SJson s = new SJson();
     	s.addFields("id", 11);
+    	s.addFields("id", 23);
     	s.addFields("name", "hechen");
     	
     	SJson newJ = new SJson();
@@ -84,6 +85,8 @@ public class SJson__Test {
     	logger.info(s.getJsonString());
     	
     	s.removeFields("dog.mao");
+    	logger.info(s.getJsonString());
+    	s.removeFields("mous[]");
     	logger.info(s.getJsonString());
     	
     	s.removeFields("dog");

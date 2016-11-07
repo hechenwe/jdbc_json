@@ -16,33 +16,28 @@ import net.sf.json.JSONObject;
 public class SJson {
 
 	private static final String DATE_FORMAT = "yyyy-MM-dd H:m:s";
-	 
-	 
+
 	/**
 	 * JSONObject 对象
 	 */
-	private JSONObject jObj;
-	
-	private Map<String,SJson> map = new LinkedHashMap<>();
-	private Map<String,List<SJson>> array = new LinkedHashMap<>();
-	
-	/**
-	 * JSONArray 数组
-	 */
-	private JSONArray jArray;
-	
+	private JSONObject jSONObject;
+
+	private Map<String, SJson> map = new LinkedHashMap<>();
+	private Map<String, List<SJson>> array = new LinkedHashMap<>();
+
+	 
+
 	private boolean isJson = true;
 
 	public SJson() {
-		this.jObj = new JSONObject();
+		this.jSONObject = new JSONObject();
 	}
-    
-	public SJson(Object obj){
-		jObj = JSONObject.fromObject(obj);
-		 
-		
+
+	public SJson(Object obj) {
+		jSONObject = JSONObject.fromObject(obj);
+
 	}
-	
+
 	/**
 	 * SJson 构造器
 	 * 
@@ -52,30 +47,17 @@ public class SJson {
 
 	public SJson(String jsonString) {
 
-		if (isJsonArray(jsonString)) {// json数组
-			JSONArray ja = JSONArray.fromObject(jsonString);
-			JSONArray jArray = new JSONArray();
-			if (ja != null && ja.size() > 0) {
-				for (int i = 0; i < ja.size(); i++) {
-					JSONObject j = ja.getJSONObject(i);
-					@SuppressWarnings("unchecked")
-					Map<String, Object> map = j;
-					JSONObject jObj = getJSONObject(map);
-					jArray.add(jObj);
-				}
-			}
-			this.jArray = jArray;
-			 
-		} else if (isJson(jsonString)) {
+		 
+		if (isJson(jsonString)) {
 			{
 				JSONObject jb = JSONObject.fromObject(jsonString);
 				@SuppressWarnings("unchecked")
 				Map<String, Object> map = jb;
 				JSONObject jObj = getJSONObject(map);
-				this.jObj = jObj;
-			 
+				this.jSONObject = jObj;
+
 			}
-		}else{
+		} else {
 			this.isJson = false;
 		}
 
@@ -89,36 +71,16 @@ public class SJson {
 	 */
 	public SJson(Map<String, Object> map) {
 		JSONObject jObj = getJSONObject(map);
-		this.jObj = jObj;
-		 
-	}
-
-	/**
-	 * SJson 构造器
-	 * 
-	 * @param list
-	 *            List
-	 */
-	public SJson(List<Map<String, Object>> list) {
-		JSONArray jArray = new JSONArray();
-		if (list != null && list.size() > 0) {
-			for (Map<String, Object> map : list) {
-				JSONObject jObj = getJSONObject(map);
-				jArray.add(jObj);
-			}
-		}
-		this.jArray = jArray;
-		 
+		this.jSONObject = jObj;
 
 	}
 
-	
-	public boolean isJson(){
+	 
+
+	public boolean isJson() {
 		return this.isJson;
 	}
-	
-	
-	
+
 	/**
 	 * 获取Map
 	 * 
@@ -126,27 +88,11 @@ public class SJson {
 	 */
 	public Map<String, Object> getMap() {
 		@SuppressWarnings("unchecked")
-		Map<String, Object> map = this.jObj;
+		Map<String, Object> map = this.jSONObject;
 		return map;
 	}
 
-	/**
-	 * 获取List
-	 * 
-	 * @return List<Map<String, Object>>
-	 */
-	public List<Map<String, Object>> getList() {
-		List<Map<String, Object>> list = new LinkedList<>();
-		if (jArray != null) {
-			for (int i = 0; i < jArray.size(); i++) {
-				JSONObject jb = jArray.getJSONObject(i);
-				@SuppressWarnings("unchecked")
-				Map<String, Object> map = jb;
-				list.add(map);
-			}
-		}
-		return list;
-	}
+	 
 
 	/**
 	 * 添加字段
@@ -158,31 +104,42 @@ public class SJson {
 	 */
 	public void addFields(String key, Object value) {
 		if (key != null && value != null && !key.trim().equals("")) {
-			this.jObj.accumulate(key, value);
+			Object obj = this.jSONObject.get(key);
+			SJson sMap = this.map.get(key);
+			List<SJson> sList = this.array.get(key);
+			if (obj == null && sMap == null && sList == null)
+				this.jSONObject.accumulate(key, value);
 		}
 	}
-	
-	
+
 	public void addFields(String key, SJson sJson) {
 		if (key != null && sJson != null && !key.trim().equals("")) {
-			this.map.put(key, sJson);
-			 
+			Object obj = this.jSONObject.get(key);
+			SJson sMap = this.map.get(key);
+			List<SJson> sList = this.array.get(key);
+			if (obj == null && sMap == null && sList == null) {
+				this.map.put(key, sJson);
+			}
 		}
 	}
-	
+
 	/**
 	 * 添加数组
+	 * 
 	 * @param key
 	 * @param sJsons
 	 */
 	public void addFields(String key, List<SJson> sJsons) {
-		if (key != null && sJsons != null && sJsons.size()>0 && !key.trim().equals("")) {
-			this.array.put(key, sJsons);
-			
+		if (key != null && sJsons != null && sJsons.size() > 0 && !key.trim().equals("")) {
+			Object obj = this.jSONObject.get(key);
+			SJson sMap = this.map.get(key);
+			List<SJson> sList = this.array.get(key);
+			if (obj == null && sMap == null && sList == null) {
+				this.array.put(key, sJsons);
+			}
+
 		}
 	}
-	 
-	 
 
 	/**
 	 * 获取字段，对象，数组 值
@@ -194,6 +151,42 @@ public class SJson {
 	public Object getFields(String key) {
 		Object obj = this.getValue(this.getJsonString(), key);
 		return obj;
+	}
+
+	public void updateFields(String key, Object value) {
+		Object obj = this.getFields(key);
+		if (obj != null) {
+			this.removeFields(key);
+			this.addFields(key, value);
+		}
+	}
+
+	/**
+	 * 删除
+	 * 
+	 * @param key
+	 *            关键字
+	 */
+	public void removeFields(String key) {
+		remove(null, this, null, key);
+	}
+
+	public JSONObject getJSONObject() {
+		return jSONObject;
+	}
+
+	/**
+	 * 获取json格式的字符串
+	 * 
+	 * @return
+	 */
+	public String getJsonString() {
+
+		return getJson(this).toString();
+	}
+
+	public String toString() {
+		return this.getJsonString();
 	}
 
 	/**
@@ -235,6 +228,29 @@ public class SJson {
 
 	}
 
+	private JSONObject getJson(SJson sJson) {
+		if (sJson.map.size() == 0) {
+			return sJson.jSONObject;
+		} else {
+			JSONObject jObj = JSONObject.fromObject(sJson.jSONObject.toString());
+			for (Entry<String, SJson> en : sJson.map.entrySet()) {
+				String key = en.getKey();
+				SJson s = en.getValue();
+				jObj.accumulate(key, getJson(s));
+			}
+			for (Entry<String, List<SJson>> en : sJson.array.entrySet()) {
+				String key = en.getKey();
+				List<SJson> list = en.getValue();
+				List<JSONObject> jObjs = new LinkedList<>();
+				for (SJson s : list) {
+					jObjs.add(s.jSONObject);
+				}
+				jObj.accumulate(key, jObjs);
+			}
+			return jObj;
+		}
+	}
+
 	/**
 	 * Map 转换成 JSONObject
 	 * 
@@ -266,7 +282,6 @@ public class SJson {
 
 	}
 
-	 
 	/**
 	 * 
 	 * @param jsonString
@@ -276,16 +291,16 @@ public class SJson {
 	 * @return
 	 */
 	private Object getValue(String jsonString, String key) {
-		
+
 		if (jsonString == null) {
 			return null;
 		}
-		
+
 		String[] keys = key.split("\\.");
 		JSONObject jsonRoot = null;
 		try {
 			jsonRoot = JSONObject.fromObject(jsonString);
-			
+
 		} catch (Exception e) {
 			return null;
 		}
@@ -308,7 +323,7 @@ public class SJson {
 				return null;
 			}
 		} else {
-			
+
 			String newKeys = new String();
 			for (int i = 1; i < keys.length; i++) {
 				if (i == 1) {
@@ -319,7 +334,7 @@ public class SJson {
 			}
 			// -----------------------------------
 			String thisKey = keys[0];
-			
+
 			if (thisKey.contains("[") && thisKey.contains("]")) {
 				int start = thisKey.indexOf("[");
 				int end = thisKey.indexOf("]");
@@ -345,83 +360,38 @@ public class SJson {
 		}
 	}
 
-	public void removeFields(String key){
-		remove(null,this,null, key);
-	}
-	
-	private SJson remove(SJson lastSJson , SJson sJson,String lastKey, String key){
+	private SJson remove(SJson lastSJson, SJson sJson, String lastKey, String key) {
 		String[] keys = key.split(STRING.ESCAPE_POINT);
-		if(keys.length==1){
+		if (keys.length == 1) {
 			String thisKey = keys[0];
-			JSONObject j = sJson.jObj;
+			JSONObject j = sJson.jSONObject;
 			j.remove(thisKey);
 			sJson.map.remove(thisKey);
-			if(lastSJson!=null && lastKey != null){
+			if(key.contains("[]")){
+				String newKey = new String(thisKey.replace("[]", ""));
+				sJson.array.remove(newKey);
+			}else if (thisKey.contains("[") && thisKey.contains("]")) {
+				int start = thisKey.indexOf("[");
+				int end = thisKey.indexOf("]");
+				String number = thisKey.substring(start + 1, end);
+				int num = Integer.valueOf(number);
+				String newKey = new String(key.replace("["+num+"]", ""));
+				List<SJson> list = sJson.array.get(newKey);
+				if( num<list.size() && num>=0 ){
+					list.remove(num);
+				}
+			}
+			if (lastSJson != null && lastKey != null) {
 				lastSJson.map.remove(lastKey);
 				lastSJson.map.put(lastKey, sJson);
 			}
 			return lastSJson;
-		}else{
+		} else {
 			String lKey = keys[0];
-			String thisKey = key.replace(lKey+".", "");
-		    SJson s = sJson.map.get(lKey);
-		    SJson updateS = remove(sJson,s,lKey, thisKey);
+			String thisKey = key.replace(lKey + ".", "");
+			SJson s = sJson.map.get(lKey);
+			SJson updateS = remove(sJson, s, lKey, thisKey);
 			return updateS;
 		}
-	}
-  
-	public JSONObject getjObj() {
-		return jObj;
-	}
-
-	public void setjObj(JSONObject jObj) {
-		this.jObj = jObj;
-	}
-
-	public JSONArray getjArray() {
-		return jArray;
-	}
-
-	public void setjArray(JSONArray jArray) {
-		this.jArray = jArray;
-	}
-
-	/**
-	 * 获取json格式的字符串
-	 * 
-	 * @return
-	 */
-	public String getJsonString() {
-		 
-		return getJson(this).toString(); 
-	}
-
-	
-	private JSONObject getJson(SJson sJson){
-		if(sJson.map.size()==0){
-			return sJson.jObj;
-		}else{
-			JSONObject jObj = JSONObject.fromObject(sJson.jObj.toString());
-			for(Entry<String, SJson>en:sJson.map.entrySet()){
-				String key = en.getKey();
-				SJson s = en.getValue();
-				jObj.accumulate(key, getJson(s));
-			}
-			for(Entry<String,List<SJson>> en : sJson.array.entrySet()){
-				String key = en.getKey();
-				List<SJson> list = en.getValue();
-				List<JSONObject> jObjs = new LinkedList<>();
-				for (SJson s : list) {
-					jObjs.add(s.jObj);
-				}
-				jObj.accumulate(key, jObjs);
-			}
-			return jObj;
-		}
-	}
-	
-	
-	public String toString() {
-		return this.getJsonString();
 	}
 }

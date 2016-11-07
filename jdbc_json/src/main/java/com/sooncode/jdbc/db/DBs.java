@@ -389,7 +389,7 @@ public class DBs {
 				}
 			}
 			int n = connection.getTransactionIsolation();
-			logger.error("【JDBC】数据库[" + dBcache.get(dbKey).getDataName() + "]的事务隔离级别为：" + n);
+			logger.debug("【JDBC】数据库[" + dBcache.get(dbKey).getDataName() + "]的事务隔离级别为：" + n);
 		} catch (Exception e) {
 			logger.error("【JDBC】数据库[" + dBcache.get(dbKey).getDataName() + "]的事务隔离级别设置失败!");
 		}
