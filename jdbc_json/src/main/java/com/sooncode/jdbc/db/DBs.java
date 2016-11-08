@@ -70,7 +70,7 @@ public class DBs {
 			c3p0properties = c3p0;
 		} catch (Exception e) {
 			c3p0properties = null;
-			logger.debug("【JDBC】: 加载c3p0  配置文件失败 ");
+			logger.debug("【JDBC】: 加载c3p0  配置文件失败! ");
 		}
 
 		for (String str : dbConfig) {
@@ -97,8 +97,8 @@ public class DBs {
 				logger.info("【JDBC】: 没有添加c3p0的jar包 , DataSources 加载失败");
 			}
 
-			if (c3p0properties != null && DataSources != null) {
-				// DataSource ds;
+			if (DataSources != null) {
+				 
 				try {
 					// 加载驱动类
 					Class.forName(db.getDriver());
@@ -139,7 +139,7 @@ public class DBs {
 	public static synchronized Connection getConnection(String dbKey) {
 
 		Connection connection = null;
-		if (c3p0properties != null && dataSources != null && dataSources.size() != 0) {
+		if (dataSources != null && dataSources.size() != 0) {
 			try {
 				connection = dataSources.get(dbKey).getConnection();
 				setTransactionIsolation(dbKey, connection);
