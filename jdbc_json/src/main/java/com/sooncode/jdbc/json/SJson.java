@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.sooncode.jdbc.constant.DATE_FORMAT;
 import com.sooncode.jdbc.constant.STRING;
 
 import net.sf.json.JSONArray;
@@ -15,7 +16,7 @@ import net.sf.json.JSONObject;
 
 public class SJson {
 
-	private static final String DATE_FORMAT = "yyyy-MM-dd H:m:s";
+	//private static final String DATE_FORMAT = "yyyy-MM-dd H:m:s";
 
 	/**
 	 * JSONObject 对象
@@ -24,8 +25,6 @@ public class SJson {
 
 	private Map<String, SJson> map = new LinkedHashMap<>();
 	private Map<String, List<SJson>> array = new LinkedHashMap<>();
-
-	 
 
 	private boolean isJson = true;
 
@@ -47,7 +46,6 @@ public class SJson {
 
 	public SJson(String jsonString) {
 
-		 
 		if (isJson(jsonString)) {
 			{
 				JSONObject jb = JSONObject.fromObject(jsonString);
@@ -75,8 +73,6 @@ public class SJson {
 
 	}
 
-	 
-
 	public boolean isJson() {
 		return this.isJson;
 	}
@@ -91,8 +87,6 @@ public class SJson {
 		Map<String, Object> map = this.jSONObject;
 		return map;
 	}
-
-	 
 
 	/**
 	 * 添加字段
@@ -154,11 +148,30 @@ public class SJson {
 	}
 
 	public void updateFields(String key, Object value) {
-		Object obj = this.getFields(key);
-		if (obj != null) {
-			this.removeFields(key);
-			this.addFields(key, value);
-		}
+		update(this,key,value);
+	}
+
+	private SJson update(SJson sJson, String key, Object value) {
+		if (key != null && !key.equals(STRING.NULL_STR)) {
+			if (!key.contains(STRING.POINT)) {
+				Object obj = sJson.getFields(key);
+				if (obj != null) {
+					sJson.removeFields(key);
+					sJson.addFields(key, value);
+					return null;
+				}
+			} else {
+				String[] keys = key.split(STRING.ESCAPE_POINT);
+				String lastKey = keys[0];
+				String thisKey = key.replace(lastKey + STRING.POINT, STRING.NULL_STR);
+				SJson s = sJson.map.get(lastKey);
+				if (s != null) {
+					return update(s, thisKey, value);
+				}  
+			}
+		}  
+		return null;
+
 	}
 
 	/**
@@ -270,7 +283,7 @@ public class SJson {
 					jObj.accumulate(key, jVal);
 				} else {
 					if (val instanceof Date) {
-						String str = new SimpleDateFormat(DATE_FORMAT).format(val);
+						String str = new SimpleDateFormat(DATE_FORMAT.ALL_DATE).format(val);
 						jObj.accumulate(key, str);
 					} else {
 						jObj.accumulate(key, val);
@@ -367,17 +380,17 @@ public class SJson {
 			JSONObject j = sJson.jSONObject;
 			j.remove(thisKey);
 			sJson.map.remove(thisKey);
-			if(key.contains("[]")){
+			if (key.contains("[]")) {
 				String newKey = new String(thisKey.replace("[]", ""));
 				sJson.array.remove(newKey);
-			}else if (thisKey.contains("[") && thisKey.contains("]")) {
+			} else if (thisKey.contains("[") && thisKey.contains("]")) {
 				int start = thisKey.indexOf("[");
 				int end = thisKey.indexOf("]");
 				String number = thisKey.substring(start + 1, end);
 				int num = Integer.valueOf(number);
-				String newKey = new String(key.replace("["+num+"]", ""));
+				String newKey = new String(key.replace("[" + num + "]", ""));
 				List<SJson> list = sJson.array.get(newKey);
-				if( num<list.size() && num>=0 ){
+				if (num < list.size() && num >= 0) {
 					list.remove(num);
 				}
 			}

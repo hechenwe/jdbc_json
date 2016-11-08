@@ -30,7 +30,7 @@ public class JsonBean__Test {
     	list.add(id1);
     	list.add(id2);
     	//jb.addField("identities",list);
-		logger.info(jb.getJson());
+		logger.info(jb.getJsonString());
 		
 	}
     
@@ -41,7 +41,7 @@ public class JsonBean__Test {
     	jb.addField("id",1);
     	jb.addField("name","hechen");
     	
-    	logger.info(jb.getJson());
+    	logger.info(jb.getJsonString());
     	
     }
 }

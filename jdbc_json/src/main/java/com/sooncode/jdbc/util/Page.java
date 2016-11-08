@@ -186,7 +186,7 @@ public class Page {
 		jb.addField("isLastPage",this.isLastPage);
 		jb.addField("datas",this.jsonBeans);
 		
-		return jb.getJson();
+		return jb.getJsonString();
 		
 	}
 	

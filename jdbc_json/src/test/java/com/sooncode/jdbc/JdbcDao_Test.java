@@ -22,7 +22,7 @@ public class JdbcDao_Test {
 	private JdbcDao jdbcDao = JdbcDaoFactory.getJdbcDao();
 	@Test
 	public void save(){
-	   String json = "{\"teacher\":{\"createDate\":\"2016-10-26 14:15:22\",\"teacherName\":\"hechen\",\"clazzId\":\"001\",\"sex\":\"1\",\"hight\":34}}";
+	   String json = "{\"teacher\":{\"createDate\":\"2016-10-26 14:15:22\",\"teacherName\":\"hechen\",\"clazzId\":\"001\",\"sex\":\"1\",\"hight\":34,\"xxx\":34}}";
 		JsonBean  t = new JsonBean(json);
 		t.updateField("createDate", new Date());
 		t.addField("teacherAge", 45);
@@ -30,9 +30,10 @@ public class JdbcDao_Test {
 		t.updateField("hight", (int)t.getField("hight")+1);
 		t.updateField("teacherName", "TOM");
 		t.removeField("sex");
+		for(int i =0;i<10000;i++){
 		Long b = jdbcDao.save(t);
 		logger.info(b);
-		
+		}
 	}
 	@Test
 	public void save2(){
@@ -101,14 +102,18 @@ public class JdbcDao_Test {
 	 
 	@Test 
 	public void get(){
-		String json = "{\"teacher\":{\"teacherName\":\"hechen2\"}}";
+		long t1=	System.nanoTime();
+		String json = "{\"teacher\":{\"teacherName\":\"hechen\"}}";
 		JsonBean j = new JsonBean(json);
 		Conditions c = new Conditions(j);
 		//c.setCondition("teacherName", EqualSign.NOT_EQ);
 		c.setOderBy("clazzId", Sort.ASC);
+		long t2=	System.nanoTime();
+		
 		List<JsonBean> list = jdbcDao.gets(c);
-		list.get(0).removeField("teacherName");
-		logger.info(list);
+		//list.get(0).removeField("teacherName");
+		logger.info("耗时时间："+(t2-t1)/1000000);
+		//logger.info(list);
 	}
 	
 	
@@ -159,7 +164,7 @@ public class JdbcDao_Test {
 		c.setCondition("student.name", LikeSign.LIKE);
 		c.setCondition("chooseCourse.score", EqualSign.GTEQ);
 		Page page = jdbcDao.getPage(1L,10L,c);
-		logger.info(page);
+		logger.info(page.getJsonBeans());
 	}
 	
 	
@@ -174,8 +179,13 @@ public class JdbcDao_Test {
 		Conditions c = new Conditions(student,chooseCourse,course);
 		c.setCondition("student.name", LikeSign.LIKE);
 		c.setCondition("chooseCourse.score", EqualSign.GTEQ);
+		for(int i = 0;i<100000;i++){
 		Page page = jdbcDao.getPage(1L,1L,c);
-		logger.info(page.getJson());
+		logger.info("[数据库连接次数："+ i+  "] : " +  page.getJson());
+		}
+		
+		
+		
 	}
 	
 	

@@ -35,4 +35,16 @@ public class SJsons {
 			sJson.removeFields(key);
 		}
 	}
+	
+	public int size(){
+		return this.sJsons.size();
+	}
+	
+	public String toString(){
+		JSONArray array = new JSONArray();
+		for (SJson sJson : sJsons) {
+			array.add(sJson.toString());
+		}
+		return array.toString();
+	}
 }

@@ -3,7 +3,7 @@ package com.sooncode.jdbc.constant;
  
 
 /**
- * 字符串常量
+ * 日期常量
  * @author pc
  *
  */
