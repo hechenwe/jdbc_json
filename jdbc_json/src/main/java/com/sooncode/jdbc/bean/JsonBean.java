@@ -9,11 +9,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.sooncode.jdbc.constant.DATE_FORMAT;
+import com.sooncode.jdbc.constant.STRING;
 import com.sooncode.jdbc.json.SJson;
 
 import java.util.TreeMap;
 
-public class JsonBean {
+public class JsonBean extends Bean {
 
 	private String beanName;
 
@@ -53,6 +54,24 @@ public class JsonBean {
 		}
 	}
 
+	public JsonBean (String beanName,Map<String,Object> map){
+		
+		for(Entry<String,Object> en : map.entrySet()){
+			String key = en.getKey();
+			Object val = en.getValue();
+			if(beanName==null && !key.contains(STRING.DOLLAR)){
+				this.map.put(key, val);
+			}else if(beanName!=null && !"".equals(beanName) && key.contains(STRING.DOLLAR)){
+				String[] keys = key.split(STRING.ESCAPE_DOLLAR);
+				if(keys.length==2  &&  beanName.equals(keys[0])){
+					this.map.put(keys[1], val);	
+				}
+			}
+		}
+	}
+	
+	
+	
 	public void addField(JsonBean jsonBean) {
 		if (jsonBean != null) {
 			this.addField(jsonBean.getBeanName(), jsonBean.getFields());

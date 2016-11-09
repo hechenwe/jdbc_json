@@ -30,10 +30,10 @@ public class JdbcDao_Test {
 		t.updateField("hight", (int)t.getField("hight")+1);
 		t.updateField("teacherName", "TOM");
 		t.removeField("sex");
-		for(int i =0;i<10000;i++){
+	 
 		Long b = jdbcDao.save(t);
 		logger.info(b);
-		}
+		 
 	}
 	@Test
 	public void save2(){
@@ -150,7 +150,10 @@ public class JdbcDao_Test {
 		//c.setCondition("student.name", LikeSign.LIKE);
 	    c.setCondition("teacher.teacherName", LikeSign.L_LIKE);
 		Page page = jdbcDao.getPage(1L,1L,c);
+		
 		logger.info(page.getJsonBeans());
+		
+		
 	}
 	@Test 
 	public void getPage5(){  //1对1
@@ -179,14 +182,25 @@ public class JdbcDao_Test {
 		Conditions c = new Conditions(student,chooseCourse,course);
 		c.setCondition("student.name", LikeSign.LIKE);
 		c.setCondition("chooseCourse.score", EqualSign.GTEQ);
-		for(int i = 0;i<100000;i++){
+		 
 		Page page = jdbcDao.getPage(1L,1L,c);
-		logger.info("[数据库连接次数："+ i+  "] : " +  page.getJson());
-		}
+		 
+		 
 		
 		
 		
 	}
 	
+	
+	@Test 
+	public void mainTest(){
+		for (int i = 0; i < 100; i++) {
+			get();
+			save();
+			saveOrUpdate();
+			getPage3();
+			getPage4();
+		}
+	}
 	
 }

@@ -1,19 +1,19 @@
 package example.dao;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+ 
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.chainsaw.Main;
+ 
 
 import com.sooncode.jdbc.Jdbc;
 import com.sooncode.jdbc.JdbcFactory;
+ 
+import com.sooncode.jdbc.bean.JsonBeans;
 import com.sooncode.jdbc.sql.Parameter;
 
 
-import example.entity.User;
+ 
 
 /***
  * 
@@ -24,18 +24,17 @@ public class UserDao {
 
 	private Jdbc jdbc = JdbcFactory.getJdbc();
 	
-	
-	
-	 
-	 
-	
-	 
-	public static void main(String[] args) {
+	public JsonBeans getUser4age( int age){
 		
-		List<Object> oes = new ArrayList<>();
+		String sql = "select * from user where age <=?";
+		Parameter p = new Parameter();
+		p.setReadySql(sql);
+		p.addParameter(age);
 		
-		List <User> user = new ArrayList<>();
+		List<Map<String,Object>> list = jdbc.gets(p);
+		JsonBeans beans = new JsonBeans(null,list);
 		
-		user =   (List) oes;
+		return beans;
+		
 	}
 }

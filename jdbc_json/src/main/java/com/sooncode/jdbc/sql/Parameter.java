@@ -32,6 +32,16 @@ public class Parameter {
 	/** 参数 ，从1开始 */
 	private Map<Integer, Object> params = new HashMap<>();
 
+	/**
+	 * 从 1 开始，按添加的顺序递增。
+	 * @param value
+	 */
+	public void addParameter(Object value){
+			this.params.put(params.size()+1, value);
+	}
+	
+	
+	
 	public String getReadySql() {
 		return readySql;
 	}

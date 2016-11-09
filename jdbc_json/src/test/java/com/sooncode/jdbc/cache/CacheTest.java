@@ -6,16 +6,12 @@ import java.util.List;
 import org.junit.Test;
 
 import com.sooncode.jdbc.cache.Cache2;
-
-import example.entity.Persion;
  
- 
-
 public class CacheTest {
 	
     @Test
 	public void putTest(){
-		List<Persion> list = new ArrayList<>();
+		/*List<Persion> list = new ArrayList<>();
 		Persion p1 = new Persion(1,"AAA");
 		Persion p2 = new Persion(2,"BBB");
 		Persion p3 = new Persion(3,"CCC");
@@ -38,7 +34,7 @@ public class CacheTest {
 		Persion p = new Persion();
 		p.setId(2);
 		p.setName("AAA");
-		List<Persion> list3 = (List<Persion>) Cache2.get(p);
+		List<Persion> list3 = (List<Persion>) Cache2.get(p);*/
 		
 		
 	}

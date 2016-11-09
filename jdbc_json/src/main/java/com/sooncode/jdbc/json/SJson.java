@@ -276,7 +276,7 @@ public class SJson {
 			for (Entry<String, Object> en : map.entrySet()) {
 				String key = en.getKey();
 				Object val = en.getValue();
-				if (isJson(val.toString())) {
+				if ( val != null && isJson(val.toString())) {
 					@SuppressWarnings("unchecked")
 					Map<String, Object> nextMap = JSONObject.fromObject(val.toString());
 					JSONObject jVal = getJSONObject(nextMap);
