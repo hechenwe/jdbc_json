@@ -26,7 +26,7 @@ import com.sooncode.jdbc.constant.STRING;
 import com.sooncode.jdbc.util.T2E;
 
 /**
- * 数据库
+ * 数据库连接管理
  * 
  * @author pc
  *
@@ -70,7 +70,7 @@ public class DBs {
 			c3p0properties = c3p0;
 		} catch (Exception e) {
 			c3p0properties = null;
-			logger.debug("【JDBC】: 加载c3p0  配置文件失败! ");
+			logger.debug("【Jdbc4Json】: 加载c3p0  配置文件失败! ");
 		}
 
 		for (String str : dbConfig) {
@@ -94,32 +94,24 @@ public class DBs {
 				DataSources = Class.forName("com.mchange.v2.c3p0.DataSources");
 			} catch (ClassNotFoundException e) {
 				DataSources = null;
-				logger.info("【JDBC】: 没有添加c3p0的jar包 , DataSources 加载失败");
+				logger.info("【Jdbc4Json】: 没有添加c3p0的jar包 , DataSources 加载失败");
 			}
 
 			if (DataSources != null) {
-				 
+
 				try {
 					// 加载驱动类
 					Class.forName(db.getDriver());
-					String jdbcUrl = "jdbc:mysql://" + db.getIp() + ":" + db.getPort() + "/" + db.getDataName()
-							+ "?useUnicode=true&characterEncoding=" + db.getEncodeing();
+					String jdbcUrl = DB4Parperties.getMysqlUrl(db.getIp(), db.getPort(), db.getDataName(), db.getEncodeing());
 					Properties p = new Properties();
-
-					p.setProperty("user", db.getUserName());
-					p.setProperty("password", db.getPassword());
-
-					Method unpooledDataSource = DataSources.getMethod("unpooledDataSource", String.class,
-							Properties.class);
-
+					p.setProperty(DB4Parperties.USER, db.getUserName());
+					p.setProperty(DB4Parperties.PASSWORD, db.getPassword());
+					Method unpooledDataSource = DataSources.getMethod(DB4Parperties.UNPOOLED_DATA_SOURCE, String.class, Properties.class);
 					DataSource ds = (DataSource) unpooledDataSource.invoke(null, jdbcUrl, p);
-					Method pooledDataSource = DataSources.getMethod("pooledDataSource", DataSource.class,
-							Properties.class);
+					Method pooledDataSource = DataSources.getMethod(DB4Parperties.POOLED_DATA_SOURCE, DataSource.class, Properties.class);
 					ds = (DataSource) pooledDataSource.invoke(null, ds, p);
-
 					dss.put(db.getKey(), ds);
-					logger.info("【JDBC】: 已添加c3p0连接池 ;数据库" + db.getDataName()
-							+ (db.getKey().equals(DATA.DEFAULT_KEY) == true ? "（默认数据库）" : ""));
+					logger.info("【Jdbc4Json】: 已添加c3p0连接池 ;数据库" + db.getDataName() + (db.getKey().equals(DATA.DEFAULT_KEY) == true ? "（默认首选数据库）" : ""));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -130,26 +122,30 @@ public class DBs {
 
 	/**
 	 * 获取数据库连接
-	 * 
-	 * @param dbKey
-	 *            代表连接数据库参数的关键字
-	 * 
+	 * @param dbKey 代表连接数据库参数的关键字
 	 * @return 数据库连接
 	 */
 	public static synchronized Connection getConnection(String dbKey) {
+		if (dbKey == null || dbKey.trim().equals("")) {
+			logger.error("【Jdbc4Json】:数据库 dbKey参数错误（dbKey为null 或者 dbKey 为空字符串）");
+			return null;
+		}
 
 		Connection connection = null;
-		if (dataSources != null && dataSources.size() != 0) {
+		if (dataSources != null && dataSources.size() != 0) { // 集成c3p0连接池
 			try {
 				connection = dataSources.get(dbKey).getConnection();
 				setTransactionIsolation(dbKey, connection);
 			} catch (SQLException e) {
-				logger.error("【JDBC】: 获取数据库连接失败 ");
-				e.printStackTrace();
+				logger.error("【Jdbc4Json】:从c3p0链接池中 获取数据库连接失败！ " + e.getMessage());
 				return null;
 			}
-		} else {
+		} else {// 没有集成c3p0连接池
 			DB db = DBs.dBcache.get(dbKey);
+			if (db == null) {
+				logger.error("【Jdbc4Json】:dbKey=" + dbKey + "，数据库不存在或者数据库配置文件加载失败！");
+				return null;
+			}
 			String DRIVER = db.getDriver();
 			String IP = db.getIp();
 			String PORT = db.getPort();
@@ -158,20 +154,19 @@ public class DBs {
 			String USERNAME = db.getUserName();
 			String PASSWORD = db.getPassword();
 
-			String mysqlUrl = "jdbc:mysql://" + IP + ":" + PORT + "/" + DATA_NAME
-					+ "?useUnicode=true&characterEncoding=" + ENCODEING;
+			String mysqlUrl = DB4Parperties.getMysqlUrl(IP, PORT,DATA_NAME, ENCODEING);
 
 			try {
 				Class.forName(DRIVER);
 			} catch (ClassNotFoundException e) {
-				logger.info("【JDBC】: 加载数据库驱动失败 ");
+				logger.info("【Jdbc4Json】: 加载数据库驱动失败 ");
 				return null;
 			}
 			try {
 				connection = DriverManager.getConnection(mysqlUrl, USERNAME, PASSWORD);
 				setTransactionIsolation(dbKey, connection);
 			} catch (SQLException e) {
-				logger.info("【JDBC】: 数据库连接失败 ");
+				logger.info("【Jdbc4Json】: 数据库连接失败 ");
 				return null;
 			}
 
@@ -213,8 +208,7 @@ public class DBs {
 		String dataBaseName = db.getDataName();
 		String primaryKeyName = null;
 		try {
-			ResultSet primaryKeyResultSet = getConnection(dbKey).getMetaData().getPrimaryKeys(dataBaseName, null,
-					tableName);
+			ResultSet primaryKeyResultSet = getConnection(dbKey).getMetaData().getPrimaryKeys(dataBaseName, null, tableName);
 			while (primaryKeyResultSet.next()) { // 遍历某个表的主键
 				primaryKeyName = primaryKeyResultSet.getString("COLUMN_NAME");
 			}
@@ -231,8 +225,7 @@ public class DBs {
 		DB db = DBs.dBcache.get(dbKey);
 		String dataBaseName = db.getDataName();
 		try {
-			ResultSet foreignKeyResultSet = getConnection(dbKey).getMetaData().getImportedKeys(dataBaseName, null,
-					tableName);
+			ResultSet foreignKeyResultSet = getConnection(dbKey).getMetaData().getImportedKeys(dataBaseName, null, tableName);
 			List<ForeignKey> list = new ArrayList<ForeignKey>();
 			while (foreignKeyResultSet.next()) {// 遍历某个表的外键
 
@@ -249,33 +242,33 @@ public class DBs {
 			return new ArrayList<ForeignKey>();
 		}
 	}
-	
-	public synchronized static List<Index> getIndex(String dbKey, String beanName)   {
+
+	public synchronized static List<Index> getIndex(String dbKey, String beanName) {
 		String tableName = T2E.toTableName(beanName);
 		DB db = DBs.dBcache.get(dbKey);
 		String dataBaseName = db.getDataName();
 		List<Index> indexes = new ArrayList<Index>();
 		try {
-			ResultSet indexResultSet =  getConnection(dbKey).getMetaData().getIndexInfo(dataBaseName, null, tableName, true, true);
+			ResultSet indexResultSet = getConnection(dbKey).getMetaData().getIndexInfo(dataBaseName, null, tableName, true, true);
 			while (indexResultSet.next()) {// 遍历某个表的外键
 				Index index = new Index();
-				 
+
 				String columnName = indexResultSet.getString("COLUMN_NAME").toUpperCase();// 列名
 				boolean nonUnique = indexResultSet.getBoolean("NON_UNIQUE");// 非唯一索引
-			 
-			    index.setIndexPropertyName(T2E.toField(columnName));
-			    index.setUnique(!nonUnique);
+
+				index.setIndexPropertyName(T2E.toField(columnName));
+				index.setUnique(!nonUnique);
 				indexes.add(index);
-				
+
 			}
 			return indexes;
-			
+
 		} catch (SQLException e) {
-			 
+
 			e.printStackTrace();
 			return new ArrayList<Index>();
 		}
-		
+
 	}
 
 	/**
@@ -296,7 +289,7 @@ public class DBs {
 						}
 					}
 				} catch (Exception e) {
-					logger.info("【JDBC】: 关闭数据库资源失败 ");
+					logger.info("【Jdbc4Json】: 关闭数据库资源失败 ");
 				}
 			}
 		}
@@ -306,7 +299,7 @@ public class DBs {
 		try {
 			connection.rollback();
 		} catch (SQLException e) {
-			logger.info("【JDBC】: 回滚失败 ： ");
+			logger.info("【Jdbc4Json】: 回滚失败 ： ");
 			e.printStackTrace();
 		}
 	}
@@ -344,7 +337,7 @@ public class DBs {
 		File file = new File(path);
 		String classesPath = file.toString() + File.separatorChar;
 		classesPath = classesPath.replace("%20", STRING.SPACING);
-		logger.debug("【JDBC】: classesPath=" + classesPath);
+		//logger.debug("【Jdbc4Json】: classesPath=" + classesPath);
 		return classesPath;
 
 		/*
@@ -389,9 +382,9 @@ public class DBs {
 				}
 			}
 			int n = connection.getTransactionIsolation();
-			logger.debug("【JDBC】数据库[" + dBcache.get(dbKey).getDataName() + "]的事务隔离级别为：" + n);
+			logger.debug("【Jdbc4Json】数据库[" + dBcache.get(dbKey).getDataName() + "]的事务隔离级别为：" + n);
 		} catch (Exception e) {
-			logger.error("【JDBC】数据库[" + dBcache.get(dbKey).getDataName() + "]的事务隔离级别设置失败!");
+			logger.error("【Jdbc4Json】数据库[" + dBcache.get(dbKey).getDataName() + "]的事务隔离级别设置失败!");
 		}
 	}
 }

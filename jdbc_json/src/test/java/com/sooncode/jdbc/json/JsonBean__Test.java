@@ -1,14 +1,12 @@
 package com.sooncode.jdbc.json;
 
  
-import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
-import com.mysql.jdbc.AbandonedConnectionCleanupThread;
 import com.sooncode.jdbc.bean.JsonBean;
 
 public class JsonBean__Test {
