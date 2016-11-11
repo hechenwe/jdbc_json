@@ -1,4 +1,4 @@
-package util;
+package soontest;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -45,23 +45,17 @@ public class OpenInterfaceTest implements InvocationHandler {
 	public Object invoke(Object proxy, Method method, Object[] args) {
 		Object result;
 		try {
-			/*
-			 * System.out.print("【开始执行】:" + method.getName() + "("); for (int i
-			 * = 0; args != null && i < args.length; i++) { if (i > 0)
-			 * System.out.print(","); System.out.print(" " +
-			 * args[i].toString()); } System.out.println(")");
-			 */
 			long startMem = Memory.used();
 			long start = System.nanoTime();
 			result = method.invoke(obj, args);
 			long end = System.nanoTime();
 			long endMem = Memory.used();
 			double dou = (end - start) / 1000000000.00;
-			logger.info("【执行方法】 " + method.getName() + "(...) 耗时： " + dou + "(s) / " + (end - start) / 1000000 + "(ms) / " + (end - start) + "(ns)");
-			logger.info("【执行方法】 " + method.getName() + "(...) 消耗的内存： " + (endMem - startMem) + " (bytes) / " + (endMem - startMem) / 8 + " (B) / " + (endMem - startMem) / (8 * 1024) + " (kB)");
+			logger.info("【Jdbc4Json】执行方法  " + method.getName() + "(...) 耗时： " + dou + "(s) / " + (end - start) / 1000000 + "(ms) / " + (end - start) + "(ns)");
+			logger.info("【Jdbc4Json】执行方法   " + method.getName() +  "(...) 消耗的内存： " +(endMem - startMem) / (8 * 1024) + "(kB) / "  + (endMem - startMem) / 8 + "(B) / " +  (endMem - startMem) + "(bytes)" );
 
 		} catch (Exception e) {
-			logger.info("【方法执行异常】： " + e.getMessage());
+			logger.info("【Jdbc4Json】：执行方法（"+method.getName()+"） 异常： " + e.getMessage());
 			return null;
 		} finally {
 			// System.out.println("【执行结束】： " + method.getName());

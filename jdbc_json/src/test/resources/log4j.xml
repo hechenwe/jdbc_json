@@ -23,7 +23,7 @@
     </appender>   
   
 	<root>
-		<level value="debug" /><!-- 全局日志级别 -->
+		<level value="info" /><!-- 全局日志级别 -->
 		<appender-ref ref="file" /><!-- 日志输出到文件 -->
 		<appender-ref ref="console" /><!-- 日志输出到控制台 -->
 	</root>

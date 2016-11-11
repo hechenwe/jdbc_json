@@ -5,8 +5,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-
-import util.Memory;
+import soontest.Memory;
 /**
  * 
  * @author pc

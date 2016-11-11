@@ -11,17 +11,21 @@ import org.junit.Test;
 import com.sooncode.jdbc.bean.JsonBean;
 import com.sooncode.jdbc.dao.JdbcDao;
 import com.sooncode.jdbc.dao.JdbcDaoFactory;
+import com.sooncode.jdbc.dao.JdbcDaoInterface;
 import com.sooncode.jdbc.sql.condition.Conditions;
 import com.sooncode.jdbc.sql.condition.Sort;
 import com.sooncode.jdbc.sql.condition.sign.EqualSign;
 import com.sooncode.jdbc.sql.condition.sign.LikeSign;
 import com.sooncode.jdbc.util.Page;
+
+import soontest.OpenInterfaceTest;
  
 public class JdbcDao_Test {
     private static Logger logger = Logger.getLogger("JdbcDaoTest.class");
-	private JdbcDao jdbcDao = JdbcDaoFactory.getJdbcDao();
+	private JdbcDaoInterface jdbcDao =  (JdbcDaoInterface) OpenInterfaceTest.newInstance(JdbcDaoFactory.getJdbcDao()) ;
 	@Test
 	public void save(){
+		
 	   String json = "{\"teacher\":{\"createDate\":\"2016-10-26 14:15:22\",\"teacherName\":\"hechen\",\"clazzId\":\"001\",\"sex\":\"1\",\"hight\":34,\"xxx\":34}}";
 		JsonBean  t = new JsonBean(json);
 		t.updateField("createDate", new Date());

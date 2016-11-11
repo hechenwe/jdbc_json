@@ -31,7 +31,7 @@ import com.sooncode.jdbc.util.T2E;
  * @author pc
  * 
  */
-public class JdbcDao {
+public class JdbcDao  implements JdbcDaoInterface{
 
 	public final static Logger logger = Logger.getLogger("JdbcDao.class");
 

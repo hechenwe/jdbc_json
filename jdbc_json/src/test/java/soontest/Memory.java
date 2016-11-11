@@ -1,4 +1,4 @@
-package util;
+package soontest;
 /**
  * 内存使用情况
  * @author pc
