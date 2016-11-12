@@ -106,18 +106,16 @@ public class JdbcDao_Test {
 	 
 	@Test 
 	public void get(){
-		long t1=	System.nanoTime();
+		 
 		String json = "{\"teacher\":{\"teacherName\":\"hechen\"}}";
 		JsonBean j = new JsonBean(json);
 		Conditions c = new Conditions(j);
-		//c.setCondition("teacherName", EqualSign.NOT_EQ);
 		c.setOderBy("clazzId", Sort.ASC);
-		long t2=	System.nanoTime();
-		
+		long t1 = System.nanoTime();
 		List<JsonBean> list = jdbcDao.gets(c);
-		//list.get(0).removeField("teacherName");
-		logger.info("耗时时间："+(t2-t1)/1000000);
-		//logger.info(list);
+		long t2 = System.nanoTime();
+		logger.info("耗时："+(t2-t1));
+		logger.info(list);
 	}
 	
 	

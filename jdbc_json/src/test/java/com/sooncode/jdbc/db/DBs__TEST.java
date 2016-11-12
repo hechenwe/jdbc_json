@@ -2,6 +2,7 @@ package com.sooncode.jdbc.db;
 
 import java.sql.Connection;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
@@ -37,7 +38,7 @@ public class DBs__TEST {
 	@Test
 	public void getConnection4pressureTest() {
 
-		ManyTheadTest mtt = new ManyTheadTest(5, 1000);
+		ManyTheadTest mtt = new ManyTheadTest(1, 1);
 		SoonTest st = (SoonTest) OpenInterfaceTest.newInstance(mtt);
 		List<Object> list = st.testMethod(DBs.class, "getConnection", new String[] { "default" });
 		for (Object obj : list) {
@@ -47,6 +48,13 @@ public class DBs__TEST {
 			}
 		}
  
+	}
+	
+	@Test 
+	public void getFields (){
+		Map<String,Object> map = DBs.getFields("default", "teacher");
+		logger.info(map);
+		
 	}
 
 }

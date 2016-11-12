@@ -194,7 +194,10 @@ public class Jdbc {
 			logger.debug("【JDBC】SQL语句不是查询语句：" + parameter.getFormatSql());
 			return new LinkedList<>();
 		}
+		long t1 = System.nanoTime();
 		Connection connection = DBs.getConnection(this.dbKey);
+		long t2 = System.nanoTime();
+		logger.info("获取数据库连接耗时："+(t2-t1)+"(ns)");
 		List<Map<String, Object>> resultList = new LinkedList<>();
 
 		ResultSet resultSet = null;

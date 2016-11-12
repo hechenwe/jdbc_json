@@ -9,7 +9,7 @@ public class DbBean {
 	private String primaryField;
 	private Object primaryFieldValue;
 	private List<ForeignKey> foreignKeies;
-	private Map<String, Object> fields;
+	private Map<String,Object> fields;
 	
 	public String getBeanName() {
 		return beanName;
@@ -26,6 +26,7 @@ public class DbBean {
 	public void setPrimaryField(String primaryField) {
 		this.primaryField = primaryField;
 	}
+ 
 
 	public Map<String, Object> getFields() {
 		return fields;

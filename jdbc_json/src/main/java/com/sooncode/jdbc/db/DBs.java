@@ -77,8 +77,8 @@ public class DBs {
 
 			PropertiesUtil pu = new PropertiesUtil(classesPath + str);
 			DB db = new DB();
-
-			db.setKey(pu.getString("KEY") == null ? DATA.DEFAULT_KEY : pu.getString("KEY"));
+            String key = pu.getString("KEY");
+			db.setKey(key == null ? DATA.DEFAULT_KEY :key);
 			db.setDriver(pu.getString("DRIVER"));
 			db.setIp(pu.getString("IP"));
 			db.setPort(pu.getString("PORT"));
@@ -132,7 +132,7 @@ public class DBs {
 		}
 
 		Connection connection = null;
-		if (dataSources != null && dataSources.size() != 0) { // 集成c3p0连接池
+		if (dataSources != null && dataSources.size() != 0) { // 已集成c3p0连接池
 			try {
 				connection = dataSources.get(dbKey).getConnection();
 				setTransactionIsolation(dbKey, connection);
@@ -189,10 +189,10 @@ public class DBs {
 		String dataBaseName = db.getDataName();
 		try {
 
-			ResultSet columnSet = getConnection(dbKey).getMetaData().getColumns(dataBaseName, "%", tableName, "%");
+			ResultSet columnSet = getConnection(dbKey).getMetaData().getColumns(dataBaseName, STRING.PERCENT, tableName, STRING.PERCENT);
 			Map<String, Object> map = new HashMap<>();
 			while (columnSet.next()) { // 遍历某个表的字段
-				String columnName = columnSet.getString("COLUMN_NAME".toUpperCase());
+				String columnName = columnSet.getString("COLUMN_NAME");//.toUpperCase());
 				map.put(T2E.toField(columnName), null);
 			}
 			return map;
